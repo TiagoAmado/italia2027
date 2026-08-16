@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <title>Lua de Mel — Itália · Roteiro</title>
+<script>
+(function(){
+  try{
+    var pref = localStorage.getItem('themeMode') || 'auto';
+    var sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var effective = pref==='auto' ? (sysDark ? 'dark' : 'light') : pref;
+    document.documentElement.setAttribute('data-theme', effective);
+  }catch(err){ document.documentElement.setAttribute('data-theme','light'); }
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -22,22 +32,20 @@
     --radius: 14px;
     color-scheme: light;
   }
-  @media (prefers-color-scheme: dark){
-    :root{
-      color-scheme: dark;
-      --paper:#17181A;
-      --paper-raised:#1E1F22;
-      --paper-sunken:#121314;
-      --ink:#E8E6E2;
-      --ink-soft:#9B9994;
-      --line: rgba(232,230,226,0.12);
-      --line-strong: rgba(232,230,226,0.24);
-      --accent:#D97B4F;
-      --accent-soft:#D97B4F1a;
-      --accent-2:#D97B4F33;
-    }
-    .item .body .flag{color:#F0C4A8; background:#3A2A20;}
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --paper:#17181A;
+    --paper-raised:#1E1F22;
+    --paper-sunken:#121314;
+    --ink:#E8E6E2;
+    --ink-soft:#9B9994;
+    --line: rgba(232,230,226,0.12);
+    --line-strong: rgba(232,230,226,0.24);
+    --accent:#D97B4F;
+    --accent-soft:#D97B4F1a;
+    --accent-2:#D97B4F33;
   }
+  :root[data-theme="dark"] .item .body .flag{color:#F0C4A8; background:#3A2A20;}
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
@@ -468,6 +476,7 @@
   <div class="viewtoggle">
     <button id="btnByDay" class="active">Por dia</button>
     <button id="btnSummary">Resumo</button>
+    <button id="themeToggle" title="Alternar tema"></button>
   </div>
 
   <nav class="days" id="dayNav"></nav>
@@ -707,6 +716,42 @@ function setMode(m){
 }
 document.getElementById('btnByDay').onclick = ()=>setMode('byday');
 document.getElementById('btnSummary').onclick = ()=>setMode('summary');
+
+const THEME_KEY = 'themeMode';
+const THEME_LABELS = {auto:'AUTO', light:'CLARO', dark:'ESCURO'};
+const THEME_ICONS = {light:'☀', dark:'🌙'};
+
+function getStoredThemeMode(){
+  try{ return localStorage.getItem(THEME_KEY) || 'auto'; }catch(err){ return 'auto'; }
+}
+function setStoredThemeMode(m){
+  try{ localStorage.setItem(THEME_KEY, m); }catch(err){ /* ignora se indisponível */ }
+}
+function systemPrefersDark(){
+  return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+}
+function applyTheme(mode){
+  const effective = mode==='auto' ? (systemPrefersDark() ? 'dark' : 'light') : mode;
+  document.documentElement.setAttribute('data-theme', effective);
+  const btn = document.getElementById('themeToggle');
+  if(btn){
+    btn.textContent = (THEME_ICONS[effective] || '') + ' ' + THEME_LABELS[mode];
+    btn.setAttribute('aria-label', 'Tema: '+THEME_LABELS[mode]+'. Toque para trocar.');
+  }
+}
+function cycleTheme(){
+  const order = ['auto','light','dark'];
+  const next = order[(order.indexOf(getStoredThemeMode())+1) % order.length];
+  setStoredThemeMode(next);
+  applyTheme(next);
+}
+document.getElementById('themeToggle').onclick = cycleTheme;
+applyTheme(getStoredThemeMode());
+if(window.matchMedia){
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
+    if(getStoredThemeMode()==='auto') applyTheme('auto');
+  });
+}
 
 function fmtEUR(n){
   return '€ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
