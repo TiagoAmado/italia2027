@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Lua de Mel — Itália · Roteiro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF6EF;
+    --paper-raised:#FFFFFF;
+    --paper-sunken:#FAF6EF;
+    --ink:#2B2420;
+    --ink-soft:#6B5F52;
+    --line: rgba(43,36,32,0.14);
+    --line-strong: rgba(43,36,32,0.28);
+    --accent:#A8552E;
+    --accent-soft:#A8552E1a;
+    --accent-2:#A8552E33;
+    --radius: 14px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      color-scheme: dark;
+      --paper:#17181A;
+      --paper-raised:#1E1F22;
+      --paper-sunken:#121314;
+      --ink:#E8E6E2;
+      --ink-soft:#9B9994;
+      --line: rgba(232,230,226,0.12);
+      --line-strong: rgba(232,230,226,0.24);
+      --accent:#D97B4F;
+      --accent-soft:#D97B4F1a;
+      --accent-2:#D97B4F33;
+    }
+    .item .body .flag{color:#F0C4A8; background:#3A2A20;}
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+
+  .app{max-width:760px; margin:0 auto; padding:0 0 60px;}
+
+  header.top{
+    padding:28px 20px 18px;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg, var(--paper) 0%, var(--paper) 100%);
+    position:sticky; top:0; z-index:5;
+  }
+  header.top h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(24px, 6vw, 34px);
+    margin:0 0 4px;
+    letter-spacing:-0.01em;
+  }
+  header.top .sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    font-weight:500;
+  }
+  header.top .route{
+    margin-top:10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink);
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    justify-content:center;
+    align-items:center;
+  }
+  header.top .route span.dot{color:var(--ink-soft);}
+
+  .viewtoggle{
+    display:flex;
+    gap:6px;
+    padding:12px 16px 0;
+    justify-content:center;
+  }
+  .viewtoggle button{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    font-weight:600;
+    padding:7px 16px;
+    border-radius:20px;
+    border:1px solid var(--line-strong);
+    background:var(--paper-raised);
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .viewtoggle button.active{
+    background:var(--ink);
+    color:var(--paper);
+    border-color:var(--ink);
+  }
+  .viewtoggle button:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+
+  nav.days{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding:14px 16px;
+    -webkit-overflow-scrolling:touch;
+    border-bottom:1px solid var(--line);
+    background:var(--paper);
+    position:sticky;
+    top:96px;
+    z-index:4;
+    scrollbar-width:thin;
+  }
+  nav.days::-webkit-scrollbar{height:5px;}
+  nav.days::-webkit-scrollbar-thumb{background:var(--line-strong); border-radius:10px;}
+
+  .stub{
+    flex:0 0 auto;
+    width:58px;
+    padding:8px 4px 10px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:var(--paper-raised);
+    text-align:center;
+    cursor:pointer;
+    font-family:'IBM Plex Mono', monospace;
+    position:relative;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .stub:hover{transform:translateY(-2px);}
+  .stub:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+  .stub .dnum{font-size:16px; font-weight:600; line-height:1.1;}
+  .stub .dwk{font-size:9px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.03em; margin-top:2px;}
+  .stub .cdot{width:6px; height:6px; border-radius:50%; margin:6px auto 0; background:var(--accent-city, var(--ink-soft));}
+  .stub.active{
+    border-color: var(--accent-city, var(--ink));
+    background: var(--accent-city-soft, var(--accent-soft));
+  }
+  .stub.active .dnum{color:var(--accent-city, var(--ink));}
+  .stub.today::after{
+    content:'HOJE';
+    position:absolute; top:-8px; left:50%; transform:translateX(-50%);
+    font-size:7px; font-weight:700; letter-spacing:.05em;
+    background:var(--accent-city, var(--ink)); color:var(--paper);
+    padding:1px 5px; border-radius:6px; white-space:nowrap;
+  }
+  .today-badge{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px; font-weight:600; letter-spacing:.05em;
+    color:var(--paper); background:var(--accent-city, var(--ink));
+    padding:2px 8px; border-radius:6px; margin-left:8px;
+    display:inline-block; vertical-align:middle;
+  }
+
+  .icsbtn{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.02em;
+    font-weight:600;
+    padding:7px 14px;
+    border-radius:20px;
+    border:1px solid var(--accent-city, var(--accent));
+    background:var(--accent-city-soft, var(--accent-soft));
+    color:var(--accent-city, var(--accent));
+    cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .icsbtn:hover{filter:brightness(0.95);}
+  .icsbtn:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+
+  main.day{padding:22px 18px 8px;}
+
+  .pass{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:0 1px 3px rgba(43,36,32,0.06);
+  }
+  .pass-head{
+    padding:20px 22px 16px;
+    border-left:5px solid var(--accent-city, var(--accent));
+    background: linear-gradient(90deg, var(--accent-city-soft, var(--accent-soft)) 0%, transparent 60%);
+  }
+  .pass-head .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--accent-city, var(--accent));
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  .pass-head h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(20px,5vw,26px);
+    margin:0 0 10px;
+    letter-spacing:-0.01em;
+  }
+  .hotel-line{
+    display:flex; align-items:center; gap:8px;
+    font-size:13.5px; color:var(--ink);
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px 12px;
+    width:fit-content;
+  }
+  .hotel-line b{font-weight:600;}
+  .hotel-line .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+  }
+
+  .perf{
+    height:0;
+    border-top:2px dashed var(--line-strong);
+    position:relative;
+    margin:0;
+  }
+  .perf::before,.perf::after{
+    content:'';
+    position:absolute; top:-9px;
+    width:18px; height:18px;
+    background:var(--paper);
+    border-radius:50%;
+  }
+  .perf::before{left:-9px;}
+  .perf::after{right:-9px;}
+
+  .items{padding:6px 0 4px;}
+  .item{
+    display:grid;
+    grid-template-columns:64px 1fr;
+    gap:2px 14px;
+    padding:13px 22px;
+    border-bottom:1px solid var(--line);
+    align-items:start;
+    cursor:pointer;
+  }
+  .item:hover{background:var(--paper);}
+  .item:focus-visible{outline:2px solid var(--ink); outline-offset:-2px;}
+  .item:last-child{border-bottom:none;}
+  .item .chev{
+    display:inline-block;
+    margin-left:6px;
+    font-size:10px;
+    color:var(--ink-soft);
+    transition:transform .15s ease;
+  }
+  .item.expanded .chev{transform:rotate(90deg);}
+  .item-links{
+    grid-column:1 / -1;
+    display:none;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--line);
+  }
+  .item.expanded .item-links{display:flex;}
+  .item-links a{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-decoration:none;
+    color:var(--accent-city, var(--accent));
+    background:var(--accent-city-soft, var(--accent-soft));
+    border:1px solid var(--accent-city, var(--accent));
+    padding:5px 11px;
+    border-radius:20px;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+  }
+  .item-links a:hover{filter:brightness(0.92);}
+  .item-links .no-link{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+  .item .time{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    font-weight:600;
+    color:var(--accent-city, var(--accent));
+    padding-top:1px;
+  }
+  .item .body .act{
+    font-size:14.5px;
+    font-weight:500;
+    line-height:1.35;
+  }
+  .item .body .meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px 10px;
+    margin-top:5px;
+    font-size:11.5px;
+    color:var(--ink-soft);
+  }
+  .item .body .meta .m{
+    display:inline-flex; align-items:center; gap:4px;
+  }
+  .item .body .meta .price{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    color:var(--ink);
+    background:var(--paper-sunken);
+    border:1px solid var(--line);
+    padding:1px 7px;
+    border-radius:20px;
+  }
+  .item .body .flag{
+    display:inline-block;
+    margin-top:6px;
+    font-size:11px;
+    font-weight:600;
+    color:#8C4B12;
+    background:#F4E3C7;
+    padding:2px 8px;
+    border-radius:6px;
+  }
+  .item.checkinout .act b{color:var(--accent-city, var(--accent));}
+  .item.checkinout{background:var(--paper);}
+
+  .foot-note{
+    padding:16px 22px 20px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    border-top:1px solid var(--line);
+    display:flex; align-items:center; gap:8px;
+  }
+
+  .day-budget{
+    padding:14px 22px 20px;
+    border-top:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .day-budget .db-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--ink-soft);
+  }
+  .day-budget .db-value{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:16px;
+    font-weight:600;
+    color:var(--accent-city, var(--accent));
+  }
+  .day-budget .db-note{
+    font-size:10.5px;
+    color:var(--ink-soft);
+    display:block;
+    margin-top:1px;
+    font-family:'Inter',sans-serif;
+    font-weight:400;
+    text-transform:none;
+    letter-spacing:normal;
+  }
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:10px;
+    padding:14px 18px 0;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    color:var(--ink-soft);
+  }
+  .legend span{display:inline-flex; align-items:center; gap:5px;}
+  .legend i{width:8px; height:8px; border-radius:50%; display:inline-block;}
+
+  footer.bud{
+    margin:26px 18px 0;
+    padding:18px 20px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--paper-raised);
+  }
+  footer.bud h3{
+    font-family:'Fraunces', serif;
+    font-size:17px; margin:0 0 10px;
+  }
+  footer.bud table{width:100%; border-collapse:collapse; font-size:13px;}
+  footer.bud td{padding:6px 0; border-bottom:1px solid var(--line);}
+  footer.bud td:last-child{text-align:right; font-family:'IBM Plex Mono', monospace;}
+  footer.bud tr.total td{font-weight:700; border-bottom:none; padding-top:10px;}
+
+  .summary-wrap{padding:4px 0;}
+  .summary-intro{
+    padding:4px 4px 16px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+  .sday{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-left:5px solid var(--accent-city, var(--accent));
+    border-radius:12px;
+    padding:13px 16px;
+    margin-bottom:8px;
+    cursor:pointer;
+    transition:transform .15s ease;
+  }
+  .sday:hover{transform:translateX(2px);}
+  .sday:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
+  .sday .sd-date{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--accent-city, var(--accent));
+    font-weight:600;
+    width:52px;
+    flex:0 0 auto;
+    line-height:1.3;
+  }
+  .sday .sd-mid{flex:1 1 auto; min-width:0;}
+  .sday .sd-title{font-size:14px; font-weight:600; line-height:1.3;}
+  .sday .sd-hotel{font-size:11.5px; color:var(--ink-soft); margin-top:2px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .sday .sd-price{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px;
+    font-weight:600;
+    flex:0 0 auto;
+    text-align:right;
+    white-space:nowrap;
+  }
+  .sday .sd-price small{display:block; font-weight:400; font-size:9.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="sub">Lua de Mel</div>
+    <h1>Roteiro — Itália</h1>
+    <div class="route">
+      <span>Roma</span><span class="dot">→</span><span>Sorrento</span><span class="dot">→</span><span>Florença</span><span class="dot">→</span><span>Bologna</span><span class="dot">→</span><span>Veneza</span><span class="dot">→</span><span>Roma</span>
+    </div>
+  </header>
+
+  <div class="viewtoggle">
+    <button id="btnByDay" class="active">Por dia</button>
+    <button id="btnSummary">Resumo</button>
+  </div>
+
+  <nav class="days" id="dayNav"></nav>
+
+  <main class="day" id="dayView"></main>
+
+  <div class="legend">
+    <span><i style="background:#A8552E"></i>Roma</span>
+    <span><i style="background:#2A6F63"></i>Sorrento</span>
+    <span><i style="background:#B8862E"></i>Florença</span>
+    <span><i style="background:#9E2B25"></i>Bologna</span>
+    <span><i style="background:#C8102E"></i>Ferrari Day</span>
+    <span><i style="background:#1D5C64"></i>Veneza</span>
+  </div>
+
+</div>
+
+<script>
+const CITY_COLORS = {
+  voo:    {c:"#6B5F52", soft:"#6B5F521a"},
+  roma:   {c:"#A8552E", soft:"#A8552E1a"},
+  sorrento:{c:"#2A6F63", soft:"#2A6F631a"},
+  firenze:{c:"#B8862E", soft:"#B8862E1a"},
+  bologna:{c:"#9E2B25", soft:"#9E2B251a"},
+  ferrari:{c:"#C8102E", soft:"#C8102E1a"},
+  venezia:{c:"#1D5C64", soft:"#1D5C641a"}
+};
+
+const DAYS = [
+{d:"22/3", wk:"Segunda", city:"voo", cityLabel:"Embarque", title:"Embarque", hotel:null, hotelNote:"Em voo (sem hospedagem)", budget:0,
+ items:[
+  {t:"20:40", a:"Voo GRU → FCO", dur:"—", tr:"ITA Airways AZ 679", p:"—"}
+ ], end:"Em voo, rumo a Roma"},
+
+{d:"23/3", wk:"Terça", city:"roma", cityLabel:"Roma", title:"Chegada em Roma", hotel:null, hotelNote:"Chegando em Roma (sem hotel ainda)", budget:103,
+ items:[
+  {t:"11:35", a:"Chegada em Fiumicino", dur:"—", tr:"—", p:"—"},
+  {t:"11:45", a:"Fiumicino → Roma Termini", dur:"Leonardo Express ~32min · Táxi ~40min", tr:"Leonardo Express / Táxi fixo", p:"€28,00 / €50,00"},
+  {t:"~12:30", a:"Check-in — Aenea Superior Inn", dur:"30 min", tr:"A pé / metrô (10 min)", p:"—", ci:true},
+  {t:"14:30–15:30", a:"Fontana di Trevi", dur:"1h", tr:"A pé (15 min do hotel)", p:"grátis"},
+  {t:"15:45–16:30", a:"Panteão", dur:"45 min", tr:"A pé (8 min)", p:"€10,00"},
+  {t:"16:45–18:00", a:"Piazza Navona (tempo livre)", dur:"1h15", tr:"A pé (16 min)", p:"grátis"},
+  {t:"19:00–20:30", a:"Jantar — Tonnarello (Trastevere)", dur:"1h30", tr:"A pé ~35min (grátis) / Táxi ~15min (~€13,00)", p:"€65,00"}
+ ], end:"Dormindo no Aenea Superior Inn (Roma)"},
+
+{d:"24/3", wk:"Quarta", city:"roma", cityLabel:"Roma", title:"Roma Antiga", hotel:"Aenea Superior Inn", hotelNote:"Hospedados no Aenea Superior Inn (Roma)", budget:150,
+ items:[
+  {t:"8:00–11:00", a:"Coliseu + Fórum Romano + Palatino", dur:"3h", tr:"A pé (15 min do hotel)", p:"€40,00", flag:"Reserva obrigatória"},
+  {t:"11:15–11:45", a:"Circo Máximo", dur:"30 min", tr:"A pé (12 min)", p:"grátis"},
+  {t:"13:00–14:30", a:"Almoço + descanso (região do Coliseu)", dur:"1h30", tr:"—", p:"€35,00"},
+  {t:"15:00–18:00", a:"Tempo livre / descanso", dur:"livre", tr:"—", p:"—"},
+  {t:"19:30–21:00", a:"Jantar — Roscioli", dur:"1h30", tr:"A pé (23 min)", p:"€75,00", flag:"Reserva antecipada"}
+ ], end:"Dormindo no Aenea Superior Inn (Roma)"},
+
+{d:"25/3", wk:"Quinta", city:"roma", cityLabel:"Roma", title:"Vaticano", hotel:"Aenea Superior Inn", hotelNote:"Hospedados no Aenea Superior Inn (Roma)", budget:227,
+ items:[
+  {t:"8:00–11:00", a:"Museus do Vaticano + Capela Sistina", dur:"3h", tr:"A pé/metrô (12 min)", p:"€50,00", flag:"Reserva obrigatória"},
+  {t:"11:15–12:15", a:"Basílica de São Pedro + subida à cúpula", dur:"1h", tr:"A pé (15 min dos Museus)", p:"€16,00"},
+  {t:"12:15–12:30", a:"Praça São Pedro", dur:"15 min", tr:"A pé (5 min)", p:"grátis"},
+  {t:"12:45–13:30", a:"Castelo Sant'Angelo", dur:"45 min", tr:"A pé (15 min)", p:"€36,00"},
+  {t:"13:45–14:45", a:"Almoço (região de Piazza Navona)", dur:"1h", tr:"A pé (10 min)", p:"€40,00"},
+  {t:"15:00–19:30", a:"Tempo livre / descanso", dur:"livre", tr:"—", p:"—"},
+  {t:"20:00–21:30", a:"Jantar — Settimio All'Arancio", dur:"1h30", tr:"A pé ~25min (grátis) / Táxi ~10min (~€10,00)", p:"€85,00"}
+ ], end:"Dormindo no Aenea Superior Inn (Roma)"},
+
+{d:"26/3", wk:"Sexta", city:"sorrento", cityLabel:"Sorrento", title:"Roma → Pompeia → Sorrento", hotel:"Aenea Superior Inn", hotelNote:"Hospedados no Aenea Superior Inn (Roma)", budget:258,
+ items:[
+  {t:"7:00", a:"Checkout — Aenea Superior Inn", dur:"—", tr:"—", p:"—", ci:true},
+  {t:"7:15–8:25", a:"Roma Termini → Napoli Centrale", dur:"1h10", tr:"Frecciarossa/Italo", p:"€75,00"},
+  {t:"8:25–8:55", a:"Napoli Centrale → Pompei Scavi", dur:"~30 min", tr:"EAV Circumvesuviana", p:"€14,00"},
+  {t:"9:00–13:00", a:"Pompeia — Parque Arqueológico", dur:"~3h", tr:"A pé (caminhada livre pelo sítio)", p:"€50,00", flag:"Ingresso antecipado · mala no depósito grátis da Porta Marina"},
+  {t:"13:15–13:45", a:"Pompei Scavi → Sorrento Train Station", dur:"~30 min", tr:"EAV Circumvesuviana", p:"€14,00"},
+  {t:"13:45–14:45", a:"Almoço em Sorrento (centro)", dur:"1h", tr:"A pé (10 min da estação)", p:"€40,00"},
+  {t:"15:00", a:"Check-in — Grace Suites", dur:"—", tr:"—", p:"—", ci:true},
+  {t:"15:30–17:00", a:"Piazza Tasso + centro histórico", dur:"1h30", tr:"A pé (5 min do hotel)", p:"grátis"},
+  {t:"20:00–21:30", a:"Jantar — Trattoria Da Emilia dal 1947", dur:"1h30", tr:"A pé (10 min)", p:"€65,00"}
+ ], end:"Dormindo no Grace Suites (Sorrento)"},
+
+{d:"27/3", wk:"Sábado", city:"sorrento", cityLabel:"Sorrento", title:"Costa Amalfitana", hotel:"Grace Suites", hotelNote:"Hospedados no Grace Suites (Sorrento)", budget:106,
+ items:[
+  {t:"8:30–9:05", a:"Sorrento → Positano", dur:"Ferry ~35min · Ônibus SITA ~50min", tr:"Ferry (confirmar sazonal) / Ônibus SITA", p:"Ferry a confirmar / Ônibus ~€5,00"},
+  {t:"9:15–11:00", a:"Positano — Spiaggia Grande", dur:"1h45", tr:"A pé (3 min do porto)", p:"grátis"},
+  {t:"11:30–12:30", a:"Positano → Amalfi", dur:"Ferry ~25-30min · Ônibus SITA ~45-50min", tr:"Ferry / Ônibus SITA", p:"Ferry ~€30,00 / Ônibus ~€5,00"},
+  {t:"12:30–13:30", a:"Catedral de Amalfi", dur:"1h", tr:"A pé (5 min do porto)", p:"€6,00"},
+  {t:"20:00–21:30", a:"Jantar — La Tagliata", dur:"1h30", tr:"Táxi (21 min)", p:"€90,00", flag:"Reserva com antecedência"}
+ ], end:"Dormindo no Grace Suites (Sorrento)"},
+
+{d:"28/3", wk:"Domingo", city:"sorrento", cityLabel:"Sorrento · Páscoa", title:"Páscoa em Sorrento", hotel:"Grace Suites", hotelNote:"Hospedados no Grace Suites (Sorrento)", budget:120,
+ items:[
+  {t:"9:30–10:15", a:"Villa Comunale di Sorrento", dur:"45 min", tr:"A pé (3 min)", p:"grátis"},
+  {t:"10:45–12:15", a:"Bagni Regina Giovanna", dur:"1h30", tr:"A pé (38 min)", p:"grátis"},
+  {t:"20:00–21:30", a:"Jantar de Páscoa — L'Antica Trattoria", dur:"1h30", tr:"A pé (3 min)", p:"€120,00", flag:"Reserva obrigatória — feriado"}
+ ], end:"Dormindo no Grace Suites (Sorrento)"},
+
+{d:"29/3", wk:"Segunda", city:"firenze", cityLabel:"Florença", title:"Sorrento → Florença", hotel:"Grace Suites", hotelNote:"Hospedados no Grace Suites (Sorrento)", budget:148,
+ items:[
+  {t:"8:00", a:"Checkout — Grace Suites", dur:"—", tr:"—", p:"—", ci:true},
+  {t:"8:15–9:25", a:"Sorrento → Napoli Centrale", dur:"~1h10", tr:"EAV Circumvesuviana", p:"€10,00"},
+  {t:"9:30–10:15", a:"Almoço — L'Antica Pizzeria da Michele", dur:"45 min", tr:"A pé (15 min da estação)", p:"€12,00"},
+  {t:"11:00–15:00", a:"Napoli Centrale → Firenze S.M. Novella", dur:"~3h/4h", tr:"Frecciarossa", p:"€110,00", flag:"Atenção: Pasquetta, trem mais cheio"},
+  {t:"15:30", a:"Check-in — Palazzo dal Borgo", dur:"—", tr:"—", p:"—", ci:true},
+  {t:"16:00–16:30", a:"Piazza della Signoria", dur:"30 min", tr:"A pé (15 min do hotel)", p:"grátis"},
+  {t:"16:45–17:30", a:"Santa Maria del Fiore (vista externa)", dur:"45 min", tr:"A pé (5 min)", p:"grátis"},
+  {t:"19:30–20:30", a:"Jantar — All'Antico Vinaio", dur:"1h", tr:"A pé (13 min)", p:"€16,00"}
+ ], end:"Dormindo no Palazzo dal Borgo (Florença)"},
+
+{d:"30/3", wk:"Terça", city:"firenze", cityLabel:"Florença", title:"Florença Clássica", hotel:"Palazzo dal Borgo", hotelNote:"Hospedados no Palazzo dal Borgo (Florença)", budget:104,
+ items:[
+  {t:"8:00–10:00", a:"Cúpula do Brunelleschi", dur:"1h30–2h", tr:"A pé (9 min)", p:"€40,00", flag:"Reserva obrigatória — OPA Pass"},
+  {t:"10:15–11:15", a:"Galeria da Accademia (David)", dur:"1h", tr:"A pé (6 min)", p:"€24,00"},
+  {t:"11:30–12:00", a:"Ponte Vecchio", dur:"30 min", tr:"A pé (14 min)", p:"grátis"},
+  {t:"13:00–14:00", a:"Almoço — Trattoria Mario", dur:"1h", tr:"A pé (10 min)", p:"€40,00", flag:"Chegar cedo, lota"},
+  {t:"18:00–19:00", a:"Piazzale Michelangelo (pôr do sol)", dur:"1h", tr:"A pé ~30-35min subida (grátis) / Ônibus 12/13 ~15-20min (~€3,40)", p:"grátis"}
+ ], end:"Dormindo no Palazzo dal Borgo (Florença)"},
+
+{d:"31/3", wk:"Quarta", city:"firenze", cityLabel:"Florença", title:"Florença (Uffizi)", hotel:"Palazzo dal Borgo", hotelNote:"Hospedados no Palazzo dal Borgo (Florença)", budget:110,
+ items:[
+  {t:"8:15–8:30", a:"Chegada Galleria degli Uffizi", dur:"—", tr:"A pé (18 min do hotel)", p:"a confirmar", flag:"Reserva obrigatória — chegar 15 min antes"},
+  {t:"8:30–11:30", a:"Galleria degli Uffizi", dur:"3h", tr:"—", p:"(incluso acima)"},
+  {t:"11:45–12:30", a:"Café/gelato — Piazza della Repubblica", dur:"45 min", tr:"A pé (5 min)", p:"€15,00"},
+  {t:"13:00–14:00", a:"Almoço no Oltrarno (Santo Spirito)", dur:"1h", tr:"A pé (atravessar Ponte Vecchio, ~15 min)", p:"€35,00"},
+  {t:"14:30–16:30", a:"Giardino di Boboli", dur:"2h", tr:"A pé (10 min)", p:"a confirmar"},
+  {t:"17:00–18:30", a:"Tempo livre — Santo Spirito / compras", dur:"livre", tr:"A pé (8 min)", p:"—"},
+  {t:"20:00", a:"Jantar no Oltrarno (trattoria local)", dur:"1h30", tr:"A pé (5 min)", p:"€60,00"}
+ ], end:"Dormindo no Palazzo dal Borgo (Florença)"},
+
+{d:"1/4", wk:"Quinta", city:"bologna", cityLabel:"Bologna", title:"Florença → Bologna", hotel:"Palazzo dal Borgo", hotelNote:"Hospedados no Palazzo dal Borgo (Florença)", budget:145,
+ items:[
+  {t:"11:30", a:"Checkout — Palazzo dal Borgo", dur:"—", tr:"—", p:"—", ci:true},
+  {t:"12:00–12:40", a:"Firenze S.M. Novella → Bologna Centrale", dur:"~35–40 min", tr:"Frecciarossa/Italo", p:"€55,00"},
+  {t:"13:00", a:"Check-in — Luxury Station Suite", dur:"—", tr:"—", p:"—", ci:true},
+  {t:"15:00–15:30", a:"Piazza Maggiore", dur:"30 min", tr:"A pé (15 min do hotel)", p:"grátis"},
+  {t:"15:45–17:15", a:"Torre dell'Orologio", dur:"1h30", tr:"A pé (7 min)", p:"€20,00", flag:"Reserva obrigatória"},
+  {t:"17:30–18:15", a:"Mercato di Mezzo", dur:"45 min", tr:"A pé (8 min)", p:"grátis (compras à parte)"},
+  {t:"19:30–21:00", a:"Jantar — Osteria dell'Orsa", dur:"1h30", tr:"A pé (7 min)", p:"€70,00"}
+ ], end:"Dormindo no Luxury Station Suite (Bologna)"},
+
+{d:"2/4", wk:"Sexta", city:"ferrari", cityLabel:"Ferrari Day", title:"Ferrari Day", hotel:"Luxury Station Suite", hotelNote:"Hospedados no Luxury Station Suite (Bologna)", budget:570,
+ items:[
+  {t:"7:30–8:00", a:"Café da manhã, checkout — Luxury Station Suite", dur:"30 min", tr:"—", p:"—", ci:true},
+  {t:"8:00–8:15", a:"Guardar bagagem no locker (KiPoint) da Bologna Centrale", dur:"15 min", tr:"A pé (2 min, dentro da estação)", p:"a confirmar"},
+  {t:"8:30–8:55", a:"Bologna Centrale → Modena", dur:"~20–25 min", tr:"Trenitalia Regionale", p:"€12,00"},
+  {t:"9:05–10:25", a:"Museu Casa Enzo Ferrari (Modena)", dur:"1h20", tr:"A pé (10 min estação→museu, 10 min volta)", p:"€56,00"},
+  {t:"10:40–11:15", a:"Modena → Maranello", dur:"~35 min", tr:"Navetta \"Discover Ferrari\" (ida/volta)", p:"€20,00"},
+  {t:"11:15–13:00", a:"Galeria Ferrari (Maranello)", dur:"1h45", tr:"A pé (2 min do ponto da navetta)", p:"(incluso na navetta)"},
+  {t:"13:00–14:00", a:"Almoço em Maranello", dur:"1h", tr:"A pé (10 min)", p:"€35,00"},
+  {t:"14:00–15:30", a:"Test drive — Ferrari Roma Spider (PushStart)", dur:"1h30 (com folga)", tr:"A pé (frente ao museu)", p:"€300,00"},
+  {t:"15:30–18:00", a:"Tempo livre em Maranello (loja, café, relax)", dur:"2h30", tr:"—", p:"—"},
+  {t:"18:00–18:35", a:"Maranello → Modena", dur:"~35 min", tr:"Navetta \"Discover Ferrari\"", p:"(incluso acima)"},
+  {t:"18:35–19:00", a:"Modena → Bologna Centrale", dur:"~20–25 min", tr:"Trenitalia Regionale", p:"€12,00"},
+  {t:"19:00–19:15", a:"Retirar bagagem do locker", dur:"15 min", tr:"A pé (2 min)", p:"(incluso acima)"},
+  {t:"19:30–20:50", a:"Bologna Centrale → Venezia Santa Lucia", dur:"~1h10–1h30", tr:"Frecciarossa", p:"€80,00"},
+  {t:"21:15", a:"Check-in — Hotel Saturnia & International", dur:"—", tr:"—", p:"—", ci:true},
+  {t:"21:30", a:"Jantar tardio / room service (San Marco)", dur:"—", tr:"A pé (5 min do hotel)", p:"€55,00"}
+ ], end:"Dormindo no Hotel Saturnia & International (Veneza)"},
+
+{d:"3/4", wk:"Sábado", city:"venezia", cityLabel:"Veneza", title:"Veneza", hotel:"Hotel Saturnia & International", hotelNote:"Hospedados no Hotel Saturnia & International (Veneza)", budget:120,
+ items:[
+  {t:"9:00–9:30", a:"Piazza San Marco", dur:"30 min", tr:"A pé (5 min)", p:"grátis"},
+  {t:"9:45–10:45", a:"Basílica de São Marcos", dur:"1h", tr:"A pé (2 min)", p:"€10,00"},
+  {t:"11:00–12:00", a:"Campanário de São Marcos", dur:"1h", tr:"A pé (2 min)", p:"€30,00"},
+  {t:"12:15–13:00", a:"Ponte de Rialto", dur:"45 min", tr:"A pé (7 min)", p:"grátis"},
+  {t:"20:00–21:30", a:"Jantar — Trattoria alla Madonna", dur:"1h30", tr:"A pé (11 min)", p:"€80,00"}
+ ], end:"Dormindo no Hotel Saturnia & International (Veneza)"},
+
+{d:"4/4", wk:"Domingo", city:"roma", cityLabel:"Veneza → Roma", title:"Veneza → Roma", hotel:"Hotel Saturnia & International", hotelNote:"Hospedados no Hotel Saturnia & International (Veneza)", budget:205,
+ items:[
+  {t:"9:00–9:45", a:"Fondamenta delle Zattere (Dorsoduro)", dur:"45 min", tr:"A pé (11 min)", p:"grátis"},
+  {t:"10:15", a:"Checkout — Hotel Saturnia & International", dur:"—", tr:"—", p:"—", ci:true},
+  {t:"10:30–14:00", a:"Venezia Santa Lucia → Roma Termini", dur:"~3h30–4h", tr:"Frecciarossa", p:"€130,00"},
+  {t:"15:00", a:"Check-in — Aenea Superior Inn", dur:"—", tr:"—", p:"—", ci:true},
+  {t:"20:00–21:30", a:"Jantar de despedida — Trattoria Da Enzo (Trastevere)", dur:"1h30", tr:"A pé ~27min (grátis) / Táxi ~12min (~€13,00)", p:"€75,00"}
+ ], end:"Dormindo no Aenea Superior Inn (Roma)"},
+
+{d:"5/4", wk:"Segunda", city:"roma", cityLabel:"Roma", title:"Volta ao Brasil", hotel:"Aenea Superior Inn", hotelNote:"Hospedados no Aenea Superior Inn (Roma)", budget:28,
+ items:[
+  {t:"Manhã", a:"Livre / últimas compras", dur:"livre", tr:"—", p:"—"},
+  {t:"12:00", a:"Checkout — Aenea Superior Inn", dur:"—", tr:"—", p:"—", ci:true},
+  {t:"19:00", a:"Roma Termini → Fiumicino", dur:"Leonardo Express ~32min · Táxi ~40min", tr:"Leonardo Express / Táxi fixo", p:"€28,00 / €50,00"},
+  {t:"22:05", a:"Voo FCO → GRU", dur:"—", tr:"ITA Airways AZ 674", p:"—"}
+ ], end:"Em voo, rumo a São Paulo"}
+];
+
+const TRIP_YEAR = 2027;
+const STORAGE_KEY = 'roteiroItalia.state';
+
+function dateForDay(day){
+  const [dd, mm] = day.d.split('/').map(Number);
+  return new Date(TRIP_YEAR, mm-1, dd);
+}
+
+function findTodayIndex(){
+  const now = new Date();
+  for(let i=0;i<DAYS.length;i++){
+    const dd = dateForDay(DAYS[i]);
+    if(dd.getFullYear()===now.getFullYear() && dd.getMonth()===now.getMonth() && dd.getDate()===now.getDate()) return i;
+  }
+  return -1;
+}
+
+let active = 0;
+let mode = 'byday'; // 'byday' | 'summary'
+
+function loadState(){
+  const hash = location.hash.replace('#','');
+  if(hash === 'resumo'){ mode = 'summary'; return; }
+  const hm = hash.match(/^dia-(\d+)$/);
+  if(hm){
+    const idx = parseInt(hm[1],10) - 1;
+    if(idx>=0 && idx<DAYS.length){ active = idx; mode = 'byday'; return; }
+  }
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const st = JSON.parse(raw);
+      if(typeof st.active === 'number' && st.active>=0 && st.active<DAYS.length) active = st.active;
+      if(st.mode === 'summary' || st.mode === 'byday') mode = st.mode;
+      return;
+    }
+  }catch(err){ /* localStorage indisponível — segue com o default */ }
+  const todayIdx = findTodayIndex();
+  if(todayIdx>=0) active = todayIdx;
+}
+
+function persistState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({active, mode})); }catch(err){ /* ignora se indisponível */ }
+  try{ history.replaceState(null, '', mode==='summary' ? '#resumo' : '#dia-'+(active+1)); }catch(err){ /* ignora se indisponível */ }
+}
+
+function setMode(m){
+  mode = m;
+  document.getElementById('btnByDay').classList.toggle('active', m==='byday');
+  document.getElementById('btnSummary').classList.toggle('active', m==='summary');
+  document.getElementById('dayNav').style.display = (m==='byday') ? 'flex' : 'none';
+  if(m==='byday'){ renderNav(); renderDay(); } else { renderSummary(); }
+  persistState();
+}
+document.getElementById('btnByDay').onclick = ()=>setMode('byday');
+document.getElementById('btnSummary').onclick = ()=>setMode('summary');
+
+function fmtEUR(n){
+  return '€ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function renderSummary(){
+  const view = document.getElementById('dayView');
+  const totalDaily = DAYS.reduce((s,d)=>s+d.budget,0);
+  view.style.removeProperty('--accent-city');
+  view.style.removeProperty('--accent-city-soft');
+
+  view.innerHTML = `
+    <div class="summary-wrap">
+      <div class="pass" style="margin-bottom:18px;">
+        <div class="pass-head" style="border-left-color:var(--ink);">
+          <div class="eyebrow" style="color:var(--ink);">Orçamento geral</div>
+          <h2>Resumo da viagem</h2>
+        </div>
+        <div class="items" style="padding:14px 22px 18px;">
+          <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
+            <tr><td style="padding:6px 0; border-bottom:1px solid var(--line);">Passagens Brasil–Itália (pago)</td><td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">R$ 15.599,61</td></tr>
+            <tr><td style="padding:6px 0; border-bottom:1px solid var(--line);">Hotéis</td><td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">~R$ 14.234</td></tr>
+            <tr><td style="padding:6px 0; border-bottom:1px solid var(--line);">Trens e transfers</td><td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">~R$ 3.552</td></tr>
+            <tr><td style="padding:6px 0; border-bottom:1px solid var(--line);">Alimentação</td><td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">~R$ 6.692</td></tr>
+            <tr><td style="padding:6px 0; border-bottom:1px solid var(--line);">Atrações</td><td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">~R$ 2.434</td></tr>
+            <tr><td style="padding:6px 0; border-bottom:1px solid var(--line);">Ferrari extra / test drive</td><td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">~R$ 2.150</td></tr>
+            <tr><td style="padding:6px 0; border-bottom:1px solid var(--line);">Seguro / eSIM / misc. (estimado)</td><td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">~R$ 1.000–2.200</td></tr>
+            <tr><td style="padding-top:10px; font-weight:700;">Total estimado</td><td style="text-align:right; font-weight:700; font-family:'IBM Plex Mono',monospace; padding-top:10px;">~R$ 45.660–46.860</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="summary-intro">Toque em um dia pra abrir o detalhe · valores em euros, referentes só às atividades/transporte/comida daquele dia (hospedagem já está no total geral)</div>
+      <div style="text-align:center; padding-bottom:14px;">
+        <button type="button" class="icsbtn" id="exportAllBtn">📅 Exportar roteiro completo (.ics)</button>
+      </div>
+      <div id="sdayList"></div>
+      <div class="foot-note" style="border:1px solid var(--line); border-radius:12px; margin-top:10px; background:var(--paper-raised);">
+        Soma dos dias: €${totalDaily.toLocaleString('pt-BR')} — itens marcados "a confirmar" (Uffizi, Boboli, ferry Amalfi) não entram nessa soma
+      </div>
+    </div>
+  `;
+
+  document.getElementById('exportAllBtn').addEventListener('click', exportAllICS);
+
+  // Cria cada card via DOM real e prende o índice por VALOR (não por leitura de atributo depois),
+  // evitando qualquer dependência de innerHTML/delegação para o clique funcionar.
+  const list = document.getElementById('sdayList');
+  DAYS.forEach((day, dayIndex) => {
+    const col = CITY_COLORS[day.city];
+    const card = document.createElement('div');
+    card.className = 'sday';
+    card.tabIndex = 0;
+    card.style.setProperty('--accent-city', col.c);
+    card.style.setProperty('--accent-city-soft', col.soft);
+
+    const dateEl = document.createElement('div');
+    dateEl.className = 'sd-date';
+    dateEl.innerHTML = day.d + '<br>' + day.wk.slice(0,3);
+
+    const midEl = document.createElement('div');
+    midEl.className = 'sd-mid';
+    const titleEl = document.createElement('div');
+    titleEl.className = 'sd-title';
+    titleEl.textContent = day.title;
+    const hotelEl = document.createElement('div');
+    hotelEl.className = 'sd-hotel';
+    hotelEl.textContent = (day.hotel ? '🏨 '+day.hotel : day.hotelNote);
+    midEl.appendChild(titleEl);
+    midEl.appendChild(hotelEl);
+
+    const priceEl = document.createElement('div');
+    priceEl.className = 'sd-price';
+    priceEl.textContent = day.budget>0 ? fmtEUR(day.budget) : '—';
+    const smallEl = document.createElement('small');
+    smallEl.textContent = 'no dia';
+    priceEl.appendChild(smallEl);
+
+    card.appendChild(dateEl);
+    card.appendChild(midEl);
+    card.appendChild(priceEl);
+
+    // dayIndex é capturado por valor nesta própria iteração do forEach — não muda depois.
+    const open = function(){ active = dayIndex; setMode('byday'); };
+    card.addEventListener('click', open);
+    card.addEventListener('keydown', function(e){
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); open(); }
+    });
+
+    list.appendChild(card);
+  });
+}
+
+function renderNav(){
+  const nav = document.getElementById('dayNav');
+  nav.innerHTML = '';
+  const todayIdx = findTodayIndex();
+  DAYS.forEach((day,i)=>{
+    const col = CITY_COLORS[day.city];
+    const btn = document.createElement('button');
+    btn.className = 'stub' + (i===active ? ' active':'') + (i===todayIdx ? ' today':'');
+    btn.style.setProperty('--accent-city', col.c);
+    btn.style.setProperty('--accent-city-soft', col.soft);
+    btn.setAttribute('aria-label', day.d+' '+day.wk+' '+day.title + (i===todayIdx ? ' (hoje)':''));
+    btn.innerHTML = `<div class="dnum">${day.d.split('/')[0]}</div><div class="dwk">${day.wk.slice(0,3)}</div><div class="cdot"></div>`;
+    btn.onclick = ()=>{active=i; renderNav(); renderDay(); persistState();};
+    nav.appendChild(btn);
+  });
+  try{ nav.children[active].scrollIntoView({inline:'center', block:'nearest'}); }catch(err){ /* ambiente sem suporte a scrollIntoView com opções — ignora */ }
+}
+
+const HOTEL_ADDRESSES = {
+  'Aenea Superior Inn': 'Via Urbana, 156, 00184 Roma RM, Italy',
+  'Grace Suites': 'Via Luigi de Maio, 14, 80067 Sorrento NA, Italy',
+  'Palazzo dal Borgo': 'Via della Scala, 6, 50123 Firenze FI, Italy',
+  'Luxury Station Suite': 'Via Giovanni Amendola, 15, 40121 Bologna BO, Italy',
+  'Hotel Saturnia & International': 'Calle Larga XXII Marzo, 2398, 30124 Venezia VE, Italy'
+};
+
+function mapsUrl(query){
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query);
+}
+
+function getMapsLinksFor(item, day){
+  const links = [];
+  const a = item.a || '';
+
+  // Hotel: endereço exato
+  if(a.includes('Check-in') || a.includes('Checkout')){
+    for(const [name, addr] of Object.entries(HOTEL_ADDRESSES)){
+      if(a.includes(name)) links.push({label:'📍 '+name+' no Maps', url: mapsUrl(addr)});
+    }
+    return links;
+  }
+
+  // Trecho de transporte "A → B": um pino pra cada ponta
+  if(a.includes(' → ')){
+    a.split(' → ').map(s=>s.trim()).forEach(place=>{
+      links.push({label:'📍 '+place, url: mapsUrl(place+', Italy')});
+    });
+    return links;
+  }
+
+  // Ponto único: limpa prefixos comuns (Jantar —, Almoço —, etc.) antes de buscar
+  let place = a
+    .replace(/^Jantar( de Páscoa| de despedida)?\s*—?\s*/,'')
+    .replace(/^Almoço\s*—?\s*(em|no)?\s*/,'')
+    .replace(/^Café\/gelato\s*—\s*/,'')
+    .replace(/^Test drive\s*—\s*/,'')
+    .replace(/\s*\([^)]*\)\s*$/,'')
+    .trim();
+
+  if(place && place.toLowerCase() !== day.cityLabel.toLowerCase()){
+    links.push({label:'📍 Ver no Google Maps', url: mapsUrl(place + ', ' + day.cityLabel)});
+  }
+  return links;
+}
+
+function getLinksFor(item){
+  const links = [];
+  const a = item.a || '';
+  const tr = item.tr || '';
+
+  const HOTELS = [
+    ['Aenea Superior Inn', 'https://www.booking.com/hotel/it/aenea-superior-inn.html'],
+    ['Grace Suites', 'https://www.booking.com/hotel/it/grace-suites.html'],
+    ['Palazzo dal Borgo', 'https://www.booking.com/hotel/it/aprile-palazzo-dal-borgo.html'],
+    ['Luxury Station Suite', 'https://www.booking.com/hotel/it/luxury-station-suite-1.html'],
+    ['Hotel Saturnia & International', 'https://www.booking.com/hotel/it/hotelsaturniainternational.html']
+  ];
+  if(a.includes('Check-in') || a.includes('Checkout')){
+    HOTELS.forEach(([name,url])=>{ if(a.includes(name)) links.push({label:'Ver no Booking.com', url}); });
+  }
+
+  const ATTRACTIONS = [
+    ['Coliseu', 'https://parcocolosseo.it', 'Site oficial · Parco Colosseo'],
+    ['Museus do Vaticano', 'https://www.museivaticani.va', 'Site oficial · Museus do Vaticano'],
+    ['Basílica de São Pedro', 'https://www.basilicasanpietro.va', 'Site oficial · Basílica de São Pedro'],
+    ["Castelo Sant'Angelo", 'https://castelsantangelo.beniculturali.it', "Site oficial · Castel Sant'Angelo"],
+    ['Pompeia', 'https://pompeiisites.org', 'Site oficial · Parque Arqueológico de Pompeia'],
+    ['Brunelleschi', 'https://duomo.firenze.it', 'Site oficial · Grande Museo del Duomo'],
+    ['Accademia', 'https://www.gallerieaccademiafirenze.it', 'Site oficial · Galleria dell\'Accademia'],
+    ['Uffizi', 'https://www.uffizi.it', 'Site oficial · Uffizi'],
+    ["Torre dell'Orologio", 'https://www.bolognawelcome.com/it/esperienze/300685/Visita-alla-Torre-dell-Orologio-e-alle-Collezioni-Comunali-d-Arte', 'Reserva · Bologna Welcome'],
+    ['Catedral de Siena', 'https://operaduomo.siena.it', 'Site oficial · OPA SI Pass'],
+    ['Museu Casa Enzo Ferrari', 'https://www.ferrari.com/it-IT/museums/info-biglietti-visite-musei-ferrari', 'Bilheteria oficial · Museus Ferrari'],
+    ['Galeria Ferrari', 'https://www.ferrari.com/it-IT/museums/info-biglietti-visite-musei-ferrari', 'Bilheteria oficial · Museus Ferrari'],
+    ['Test drive', 'https://www.pushstart.it/pt/test-drive/ferrari-roma-spider/', 'Reserva · PushStart'],
+    ['Basílica de São Marcos', 'https://www.sanmarco-venezia.it/it/tickets', 'Bilheteria oficial · Basílica São Marcos'],
+    ['Campanário de São Marcos', 'https://www.sanmarco-venezia.it/it/tickets', 'Bilheteria oficial · Campanário'],
+    ['Catedral de Amalfi', 'https://www.duomodiamalfi.it', 'Site oficial · Duomo di Amalfi']
+  ];
+  ATTRACTIONS.forEach(([key,url,label])=>{ if(a.includes(key)) links.push({label, url}); });
+
+  if(tr.includes('Frecciarossa') || tr.includes('Leonardo Express') || tr.includes('Trenitalia')){
+    links.push({label:'Comprar passagem · Trenitalia', url:'https://www.trenitalia.com'});
+  }
+  if(tr.includes('Italo')){
+    links.push({label:'Comprar passagem · Italo', url:'https://www.italotreno.it'});
+  }
+  if(tr.includes('EAV') || tr.includes('Circumvesuviana')){
+    links.push({label:'Site oficial · EAV', url:'https://www.eavsrl.it'});
+  }
+  if(tr.includes('SITA')){
+    links.push({label:'Site oficial · SITA Sud', url:'https://www.sitasudtrasporti.it'});
+  }
+  if(tr.includes('Ferry')){
+    links.push({label:'Ferry · Travelmar', url:'https://www.travelmar.it'});
+  }
+
+  return links;
+}
+
+function pad2(n){ return n<10 ? '0'+n : ''+n; }
+
+function icsDate(d){
+  return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+'T'+pad2(d.getHours())+pad2(d.getMinutes())+'00';
+}
+
+function parseDurationMinutes(dur){
+  if(!dur) return null;
+  let m = dur.match(/(\d+)\s*h\s*(\d+)?/);
+  if(m) return parseInt(m[1],10)*60 + (m[2] ? parseInt(m[2],10) : 0);
+  m = dur.match(/(\d+)\s*min/);
+  if(m) return parseInt(m[1],10);
+  return null;
+}
+
+function parseItemTimes(day, item){
+  const raw = (item.t || '').replace(/~/g,'').trim();
+  const base = dateForDay(day);
+  const range = raw.match(/^(\d{1,2}):(\d{2})\s*[–-]\s*(\d{1,2}):(\d{2})$/);
+  if(range){
+    const start = new Date(base); start.setHours(+range[1], +range[2], 0, 0);
+    const end = new Date(base); end.setHours(+range[3], +range[4], 0, 0);
+    if(end <= start) end.setDate(end.getDate()+1);
+    return {start, end};
+  }
+  const single = raw.match(/^(\d{1,2}):(\d{2})$/);
+  if(single){
+    const start = new Date(base); start.setHours(+single[1], +single[2], 0, 0);
+    const end = new Date(start.getTime() + (parseDurationMinutes(item.dur) || 60) * 60000);
+    return {start, end};
+  }
+  return null;
+}
+
+function icsEscape(s){
+  return String(s || '').replace(/\\/g,'\\\\').replace(/,/g,'\\,').replace(/;/g,'\\;').replace(/\n/g,'\\n');
+}
+
+function buildICS(days){
+  const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Roteiro Italia//PT-BR//EN','CALSCALE:GREGORIAN'];
+  const stamp = icsDate(new Date()) + 'Z';
+  let count = 0;
+  days.forEach(day=>{
+    day.items.forEach(item=>{
+      const times = parseItemTimes(day, item);
+      if(!times) return;
+      count++;
+      const desc = [];
+      if(item.tr && item.tr!=='—') desc.push('Transporte: '+item.tr);
+      if(item.p && item.p!=='—') desc.push('Valor: '+item.p);
+      if(item.flag) desc.push('Atenção: '+item.flag);
+      lines.push('BEGIN:VEVENT');
+      lines.push('UID:'+count+'-'+times.start.getTime()+'@roteiro-italia');
+      lines.push('DTSTAMP:'+stamp);
+      lines.push('DTSTART:'+icsDate(times.start));
+      lines.push('DTEND:'+icsDate(times.end));
+      lines.push('SUMMARY:'+icsEscape(item.a));
+      if(desc.length) lines.push('DESCRIPTION:'+icsEscape(desc.join(' · ')));
+      lines.push('LOCATION:'+icsEscape(day.cityLabel));
+      lines.push('END:VEVENT');
+    });
+  });
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
+}
+
+function downloadICS(content, filename){
+  const blob = new Blob([content], {type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+function exportDayICS(day){
+  downloadICS(buildICS([day]), 'roteiro-'+day.d.replace('/','-')+'.ics');
+}
+
+function exportAllICS(){
+  downloadICS(buildICS(DAYS), 'roteiro-italia-completo.ics');
+}
+
+function renderDay(){
+  const day = DAYS[active];
+  const col = CITY_COLORS[day.city];
+  const view = document.getElementById('dayView');
+  view.style.setProperty('--accent-city', col.c);
+  view.style.setProperty('--accent-city-soft', col.soft);
+
+  const isToday = findTodayIndex() === active;
+
+  view.innerHTML = `
+    <div class="pass">
+      <div class="pass-head">
+        <div class="eyebrow">${day.d} · ${day.wk}${isToday ? '<span class="today-badge">HOJE</span>' : ''}</div>
+        <h2>${day.title}</h2>
+        <div class="hotel-line">
+          <span class="tag">${day.hotel ? 'Base':'Status'}</span>
+          <span>${day.hotel ? day.hotel : day.hotelNote}</span>
+        </div>
+      </div>
+      <div class="perf"></div>
+      <div class="items" id="itemsList"></div>
+      ${day.budget>0 ? `
+      <div class="day-budget">
+        <div>
+          <div class="db-label">Gasto do dia</div>
+          <div class="db-note">atrações + transporte + comida</div>
+        </div>
+        <div class="db-value">${fmtEUR(day.budget)}</div>
+      </div>` : ''}
+      <div class="foot-note">🌙 ${day.end}</div>
+      <div class="foot-note" style="border-top:1px dashed var(--line);">
+        <button type="button" class="icsbtn" id="exportDayBtn">📅 Exportar este dia (.ics)</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('exportDayBtn').addEventListener('click', ()=>exportDayICS(day));
+
+  const itemsList = document.getElementById('itemsList');
+  day.items.forEach(it=>{
+    const links = [...getLinksFor(it), ...getMapsLinksFor(it, day)];
+    const row = document.createElement('div');
+    row.className = 'item' + (it.ci ? ' checkinout' : '');
+    row.tabIndex = 0;
+
+    const timeEl = document.createElement('div');
+    timeEl.className = 'time';
+    timeEl.textContent = it.t;
+
+    const bodyEl = document.createElement('div');
+    bodyEl.className = 'body';
+
+    const actEl = document.createElement('div');
+    actEl.className = 'act';
+    if(it.ci){
+      const b = document.createElement('b');
+      b.textContent = it.a;
+      actEl.appendChild(b);
+    } else {
+      actEl.textContent = it.a;
+    }
+    if(links.length){
+      const chev = document.createElement('span');
+      chev.className = 'chev';
+      chev.textContent = '▸';
+      actEl.appendChild(chev);
+    }
+
+    const metaEl = document.createElement('div');
+    metaEl.className = 'meta';
+    if(it.dur && it.dur!=='—'){
+      const s = document.createElement('span'); s.className='m'; s.textContent = '⏱ '+it.dur; metaEl.appendChild(s);
+    }
+    if(it.tr && it.tr!=='—'){
+      const s = document.createElement('span'); s.className='m'; s.textContent = it.tr; metaEl.appendChild(s);
+    }
+    if(it.p && it.p!=='—'){
+      const s = document.createElement('span'); s.className='price'; s.textContent = it.p; metaEl.appendChild(s);
+    }
+
+    bodyEl.appendChild(actEl);
+    bodyEl.appendChild(metaEl);
+
+    if(it.flag){
+      const f = document.createElement('span');
+      f.className = 'flag';
+      f.textContent = it.flag;
+      bodyEl.appendChild(f);
+    }
+
+    if(links.length){
+      const linksEl = document.createElement('div');
+      linksEl.className = 'item-links';
+      links.forEach(l=>{
+        const a = document.createElement('a');
+        a.href = l.url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = '↗ ' + l.label;
+        a.addEventListener('click', (e)=> e.stopPropagation());
+        linksEl.appendChild(a);
+      });
+      bodyEl.appendChild(linksEl);
+
+      const toggle = ()=> row.classList.toggle('expanded');
+      row.addEventListener('click', toggle);
+      row.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); } });
+    } else {
+      row.style.cursor = 'default';
+    }
+
+    row.appendChild(timeEl);
+    row.appendChild(bodyEl);
+    itemsList.appendChild(row);
+  });
+}
+
+loadState();
+setMode(mode);
+</script>
+</body>
+</html>
