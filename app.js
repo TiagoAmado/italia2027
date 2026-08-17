@@ -153,13 +153,15 @@ function categorySumsEUR(){
 
 function hotelNightsSummary(){
   const nights = {};
+  const cities = {};
   DAYS.forEach(day=>{
-    const m = /^Dormindo no (.+?) \(/.exec(day.end || '');
+    const m = /^Dormindo no (.+?) \((.+?)\)/.exec(day.end || '');
     if(!m) return;
     nights[m[1]] = (nights[m[1]] || 0) + 1;
+    cities[m[1]] = m[2];
   });
   return HOTELS
-    .map(([name])=>({name, nights: nights[name] || 0, pricePerNight: HOTEL_PRICES_EUR[name] ?? null}))
+    .map(([name])=>({name, city: cities[name] || null, nights: nights[name] || 0, pricePerNight: HOTEL_PRICES_EUR[name] ?? null}))
     .filter(h=>h.nights>0);
 }
 
@@ -179,12 +181,13 @@ function renderSummary(){
   const hotelStays = hotelNightsSummary();
   const hotelRowsHTML = hotelStays.map(h=>{
     const sub = h.pricePerNight!=null ? h.nights*h.pricePerNight : null;
-    return `<tr>
-      <td style="padding:6px 0; border-bottom:1px solid var(--line);">${h.name}</td>
-      <td style="text-align:center; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">${h.nights} noite${h.nights===1?'':'s'}</td>
-      <td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">${h.pricePerNight!=null ? fmtEUR(h.pricePerNight)+'/noite' : 'a confirmar'}</td>
-      <td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">${sub!=null ? fmtEUR(sub) : '—'}</td>
-    </tr>`;
+    return `<div class="hotel-row">
+      <div class="hr-mid">
+        <div class="hr-name">${h.name}${h.city ? ` <span class="hr-city">— ${h.city}</span>` : ''}</div>
+        <div class="hr-nights">${h.nights} noite${h.nights===1?'':'s'} · ${h.pricePerNight!=null ? fmtEUR(h.pricePerNight)+'/noite' : 'preço a confirmar'}</div>
+      </div>
+      <div class="hr-sub">${sub!=null ? fmtEUR(sub) : '—'}</div>
+    </div>`;
   }).join('');
   const hotelTotalEUR = hotelStays.reduce((s,h)=> s + (h.pricePerNight!=null ? h.nights*h.pricePerNight : 0), 0);
 
@@ -213,17 +216,14 @@ function renderSummary(){
           <div class="eyebrow" style="color:var(--ink);">Hospedagem</div>
           <h2>Hotéis selecionados</h2>
         </div>
-        <div class="items" style="padding:14px 22px 18px;">
-          <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
-            <tr>
-              <td style="padding:6px 0; border-bottom:1px solid var(--line-strong); font-weight:600;">Hotel</td>
-              <td style="text-align:center; border-bottom:1px solid var(--line-strong); font-weight:600;">Diárias</td>
-              <td style="text-align:right; border-bottom:1px solid var(--line-strong); font-weight:600;">Preço/noite</td>
-              <td style="text-align:right; border-bottom:1px solid var(--line-strong); font-weight:600;">Subtotal</td>
-            </tr>
+        <div class="items" style="padding:10px 16px 6px;">
+          <div class="hotel-rows">
             ${hotelRowsHTML}
-            <tr><td style="padding-top:10px; font-weight:700;">Total (hotéis c/ preço encontrado)</td><td></td><td></td><td style="text-align:right; font-weight:700; font-family:'IBM Plex Mono',monospace; padding-top:10px;">${fmtEUR(hotelTotalEUR)}</td></tr>
-          </table>
+            <div class="hotel-row hotel-row-total">
+              <div class="hr-name">Total (hotéis c/ preço encontrado)</div>
+              <div class="hr-sub">${fmtEUR(hotelTotalEUR)}</div>
+            </div>
+          </div>
         </div>
         <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Preço/noite consultado via Booking para as datas reais de cada estadia · "Hotéis" no orçamento geral acima é o valor fixo já pago, não este total</div>
       </div>
