@@ -71,6 +71,7 @@ function goToDay(i){
   active = i;
   renderNav();
   transitionView(renderDay);
+  window.scrollTo({top:0, left:0, behavior:'auto'});
   persistState();
 }
 
