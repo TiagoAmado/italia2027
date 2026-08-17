@@ -35,8 +35,10 @@ There is no build/lint/test tooling. Edit the relevant file directly and open `i
 **Per-item links** are *derived*, not stored in the data:
 - `getLinksFor(item)` — matches substrings in `item.a` (activity name) or `item.tr` (transport) against lookup tables (`HOTELS`, `ATTRACTIONS` in `data.js`, transport-operator keyword checks) to produce official ticket/booking links.
 - `getMapsLinksFor(item, day)` — builds Google Maps search links, with special-casing for check-in/checkout (uses `HOTEL_ADDRESSES` for an exact address) and for "A → B" transit legs (one pin per endpoint).
-- Both are called in `renderDay()` and merged into one link list per item; if empty, the row isn't expandable (no chevron, `cursor:default`).
+- Both are called in `renderDay()` and merged into one link list per item; a row is expandable (chevron, `cursor:pointer`) if it has links *or* an `item.desc` — if neither, no chevron and `cursor:default`.
 - **Adding a new activity/hotel that should auto-link**: add an entry to `ATTRACTIONS`/`HOTELS`/`HOTEL_ADDRESSES` in `data.js`.
+
+**Per-item description** (`item.desc`, optional): a short personalized note — written for us specifically (can we go, do we need to prep/reserve, what to expect) — shown inside the same expandable panel as the links, above them. Unlike links, `desc` is hand-written per item in `data.js`, not derived. Rendered in `renderDay()` inside `.item-expand` alongside `.item-links`; the two share one expand/collapse toggle on the row.
 
 **Calendar export**: `buildICS(days)` in `app.js` generates an `.ics` string from `DAYS`, parsing each item's `t` (time) field via `parseItemTimes()` — handles both `"HH:MM–HH:MM"` ranges and single `"HH:MM"` times (falling back to `parseDurationMinutes(item.dur)` or a 60-min default for the end time); non-parseable times (`"Manhã"`, etc.) are skipped. Used by both the per-day export button and the whole-trip export in the summary view.
 

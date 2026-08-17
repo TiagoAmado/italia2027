@@ -49,7 +49,7 @@ header.top{
   text-align:center;
   border-bottom:1px solid var(--line);
   background:linear-gradient(180deg, var(--paper) 0%, var(--paper) 100%);
-  position:sticky; top:0; z-index:5;
+  position:static;
 }
 header.top h1{
   font-family:'Fraunces', serif;
@@ -114,7 +114,7 @@ nav.days{
   border-bottom:1px solid var(--line);
   background:var(--paper);
   position:sticky;
-  top:96px;
+  top:0;
   z-index:4;
   scrollbar-width:thin;
 }
@@ -262,16 +262,30 @@ main.day.view-fade{opacity:0; transform:translateY(6px);}
   transition:transform .15s ease;
 }
 .item.expanded .chev{transform:rotate(90deg);}
-.item-links{
+.item-expand{
   grid-column:1 / -1;
   display:none;
+}
+.item.expanded .item-expand{display:block;}
+.item-desc{
+  margin:10px 0 0;
+  padding:10px 12px;
+  font-size:12.5px;
+  font-style:italic;
+  line-height:1.55;
+  color:var(--ink);
+  background:var(--paper-sunken);
+  border:1px solid var(--line);
+  border-radius:8px;
+}
+.item-links{
+  display:flex;
   flex-wrap:wrap;
   gap:8px;
   margin-top:10px;
   padding-top:10px;
   border-top:1px dashed var(--line);
 }
-.item.expanded .item-links{display:flex;}
 .item-links a{
   font-family:'IBM Plex Mono', monospace;
   font-size:11px;
@@ -459,7 +473,7 @@ footer.bud tr.total td{font-weight:700; border-bottom:none; padding-top:10px;}
     column-gap:28px;
     padding:0 24px 60px;
   }
-  header.top{grid-area:header;}
+  header.top{grid-area:header; position:sticky; top:0; z-index:5;}
   .viewtoggle{grid-area:toggle;}
   nav.days{
     grid-area:nav;
@@ -491,6 +505,7 @@ footer.bud tr.total td{font-weight:700; border-bottom:none; padding-top:10px;}
   .pass-head{background:none; border-left-color:#000;}
   .perf{display:none;}
   .item{break-inside:avoid; cursor:default;}
+  .item-expand{display:block !important;}
   .item-links{display:flex !important;}
   .item .body .meta .price{background:none; border-color:#000;}
 }
