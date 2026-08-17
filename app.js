@@ -178,6 +178,13 @@ function renderSummary(){
   const totalMin = FIXED_COSTS_BRL.passagens + FIXED_COSTS_BRL.hoteis + transporteBRL + comidaBRL + atracaoBRL + FIXED_COSTS_BRL.seguroMiscMin;
   const totalMax = FIXED_COSTS_BRL.passagens + FIXED_COSTS_BRL.hoteis + transporteBRL + comidaBRL + atracaoBRL + FIXED_COSTS_BRL.seguroMiscMax;
 
+  const passagensEUR = FIXED_COSTS_BRL.passagens / EXCHANGE_RATE;
+  const hoteisEUR = FIXED_COSTS_BRL.hoteis / EXCHANGE_RATE;
+  const seguroMiscMinEUR = FIXED_COSTS_BRL.seguroMiscMin / EXCHANGE_RATE;
+  const seguroMiscMaxEUR = FIXED_COSTS_BRL.seguroMiscMax / EXCHANGE_RATE;
+  const totalMinEUR = totalMin / EXCHANGE_RATE;
+  const totalMaxEUR = totalMax / EXCHANGE_RATE;
+
   const hotelStays = hotelNightsSummary();
   const hotelRowsHTML = hotelStays.map(h=>{
     const sub = h.pricePerNight!=null ? h.nights*h.pricePerNight : null;
@@ -198,16 +205,37 @@ function renderSummary(){
           <div class="eyebrow" style="color:var(--ink);">Orçamento geral</div>
           <h2>Resumo da viagem</h2>
         </div>
-        <div class="items" style="padding:14px 22px 18px;">
-          <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
-            <tr><td style="padding:6px 0; border-bottom:1px solid var(--line);">Passagens Brasil–Itália (pago)</td><td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">${fmtBRL(FIXED_COSTS_BRL.passagens)}</td></tr>
-            <tr><td style="padding:6px 0; border-bottom:1px solid var(--line);">Hotéis</td><td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">~${fmtBRL(FIXED_COSTS_BRL.hoteis)}</td></tr>
-            <tr><td style="padding:6px 0; border-bottom:1px solid var(--line);">Trens e transfers</td><td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">${fmtBRL(transporteBRL)}</td></tr>
-            <tr><td style="padding:6px 0; border-bottom:1px solid var(--line);">Alimentação</td><td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">${fmtBRL(comidaBRL)}</td></tr>
-            <tr><td style="padding:6px 0; border-bottom:1px solid var(--line);">Atrações (inclui Ferrari/test drive)</td><td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">${fmtBRL(atracaoBRL)}</td></tr>
-            <tr><td style="padding:6px 0; border-bottom:1px solid var(--line);">Seguro / eSIM / misc. (estimado)</td><td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">~${fmtBRL(FIXED_COSTS_BRL.seguroMiscMin)}–${fmtBRL(FIXED_COSTS_BRL.seguroMiscMax)}</td></tr>
-            <tr><td style="padding-top:10px; font-weight:700;">Total estimado</td><td style="text-align:right; font-weight:700; font-family:'IBM Plex Mono',monospace; padding-top:10px;">~${fmtBRL(totalMin)}–${fmtBRL(totalMax)}</td></tr>
-          </table>
+        <div class="items" style="padding:10px 16px 6px;">
+          <div class="budget-rows">
+            <div class="budget-row">
+              <div class="br-label">Passagens Brasil–Itália (pago)</div>
+              <div class="br-vals"><span class="br-brl">${fmtBRL(FIXED_COSTS_BRL.passagens)}</span><span class="br-eur">${fmtEUR(passagensEUR)}</span></div>
+            </div>
+            <div class="budget-row">
+              <div class="br-label">Hotéis</div>
+              <div class="br-vals"><span class="br-brl">~${fmtBRL(FIXED_COSTS_BRL.hoteis)}</span><span class="br-eur">~${fmtEUR(hoteisEUR)}</span></div>
+            </div>
+            <div class="budget-row">
+              <div class="br-label">Trens e transfers</div>
+              <div class="br-vals"><span class="br-brl">${fmtBRL(transporteBRL)}</span><span class="br-eur">${fmtEUR(cat.transporte)}</span></div>
+            </div>
+            <div class="budget-row">
+              <div class="br-label">Alimentação</div>
+              <div class="br-vals"><span class="br-brl">${fmtBRL(comidaBRL)}</span><span class="br-eur">${fmtEUR(cat.comida)}</span></div>
+            </div>
+            <div class="budget-row">
+              <div class="br-label">Atrações (inclui Ferrari/test drive)</div>
+              <div class="br-vals"><span class="br-brl">${fmtBRL(atracaoBRL)}</span><span class="br-eur">${fmtEUR(cat.atracao)}</span></div>
+            </div>
+            <div class="budget-row">
+              <div class="br-label">Seguro / eSIM / misc. (estimado)</div>
+              <div class="br-vals"><span class="br-brl">~${fmtBRL(FIXED_COSTS_BRL.seguroMiscMin)}–${fmtBRL(FIXED_COSTS_BRL.seguroMiscMax)}</span><span class="br-eur">~${fmtEUR(seguroMiscMinEUR)}–${fmtEUR(seguroMiscMaxEUR)}</span></div>
+            </div>
+            <div class="budget-row budget-row-total">
+              <div class="br-label">Total estimado</div>
+              <div class="br-vals"><span class="br-brl">~${fmtBRL(totalMin)}–${fmtBRL(totalMax)}</span><span class="br-eur">~${fmtEUR(totalMinEUR)}–${fmtEUR(totalMaxEUR)}</span></div>
+            </div>
+          </div>
         </div>
       </div>
 

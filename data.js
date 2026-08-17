@@ -2,7 +2,7 @@ const TRIP_YEAR = 2027;
 
 // Cotação de referência usada para converter os totais calculados em € (a partir
 // dos itens do roteiro) para R$ no resumo geral. Ajustar aqui se a cotação mudar.
-const EXCHANGE_RATE = 5.3;
+const EXCHANGE_RATE = 6;
 
 // Custos que não são itemizados dia a dia em DAYS (passagens internacionais,
 // hospedagem, seguro/eSIM) — continuam manuais porque não têm de onde ser
