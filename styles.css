@@ -34,12 +34,15 @@ body{
   font-family:'Inter',system-ui,sans-serif;
   -webkit-font-smoothing:antialiased;
   min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
 }
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
 }
 
-.app{max-width:760px; margin:0 auto; padding:0 0 60px;}
+.app{width:100%; max-width:760px; padding:0 0 60px;}
 
 header.top{
   padding:28px 20px 18px;
@@ -117,6 +120,7 @@ nav.days{
 }
 nav.days::-webkit-scrollbar{height:5px;}
 nav.days::-webkit-scrollbar-thumb{background:var(--line-strong); border-radius:10px;}
+:root[data-mode="summary"] nav.days{display:none;}
 
 .stub{
   flex:0 0 auto;
@@ -172,7 +176,8 @@ nav.days::-webkit-scrollbar-thumb{background:var(--line-strong); border-radius:1
 .icsbtn:hover{filter:brightness(0.95);}
 .icsbtn:focus-visible{outline:2px solid var(--ink); outline-offset:2px;}
 
-main.day{padding:22px 18px 8px;}
+main.day{padding:22px 18px 8px; transition:opacity .18s ease, transform .18s ease;}
+main.day.view-fade{opacity:0; transform:translateY(6px);}
 
 .pass{
   background:var(--paper-raised);
@@ -440,6 +445,42 @@ footer.bud tr.total td{font-weight:700; border-bottom:none; padding-top:10px;}
   white-space:nowrap;
 }
 .sday .sd-price small{display:block; font-weight:400; font-size:9.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em;}
+
+@media (min-width:900px){
+  .app{
+    max-width:1100px;
+    display:grid;
+    grid-template-columns:220px 1fr;
+    grid-template-areas:
+      "header header"
+      "toggle toggle"
+      "nav main"
+      "nav legend";
+    column-gap:28px;
+    padding:0 24px 60px;
+  }
+  header.top{grid-area:header;}
+  .viewtoggle{grid-area:toggle;}
+  nav.days{
+    grid-area:nav;
+    flex-wrap:wrap;
+    overflow-x:visible;
+    position:sticky;
+    top:118px;
+    align-self:start;
+    max-height:calc(100vh - 140px);
+    overflow-y:auto;
+    border-bottom:none;
+    border-right:1px solid var(--line);
+    padding:14px 16px 14px 0;
+  }
+  main.day{grid-area:main; padding-top:8px;}
+  .legend{grid-area:legend; padding:14px 0 0;}
+
+  /* Em telas largas a coluna da nav fica reservada mesmo no modo Resumo — só some
+     de vista (não de layout), pra não deslocar o card ao trocar de aba. */
+  :root[data-mode="summary"] nav.days{display:flex; visibility:hidden;}
+}
 
 @media print{
   body{background:#fff; color:#000;}

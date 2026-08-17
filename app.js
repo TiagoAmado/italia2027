@@ -1,3 +1,16 @@
+// Ícones de traço fino (stroke=currentColor), no lugar de emoji, pra combinar com a
+// tipografia editorial do resto do site. icon(nome) retorna a marcação SVG como string.
+const ICON_SVG = {
+  pin: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12z"/><circle cx="12" cy="9" r="2.3"/></svg>',
+  moon: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></svg>',
+  sun: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  hotel: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 21V8l9-5 9 5v13"/><path d="M3 21h18M9 21v-6h6v6"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>',
+  link: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M9 15l6-6"/><path d="M11 6l1-1a4 4 0 1 1 6 6l-1 1"/><path d="M13 18l-1 1a4 4 0 1 1-6-6l1-1"/></svg>'
+};
+function icon(name){ return ICON_SVG[name] || ''; }
+
 function dateForDay(day){
   const [dd, mm] = day.d.split('/').map(Number);
   return new Date(TRIP_YEAR, mm-1, dd);
@@ -43,11 +56,21 @@ function persistState(){
   try{ history.replaceState(null, '', mode==='summary' ? '#resumo' : '#dia-'+(active+1)); }catch(err){ /* ignora se indisponível */ }
 }
 
+// Fade curto no #dayView ao trocar de conteúdo — respeita prefers-reduced-motion
+// porque a regra global (*{transition-duration:0.001ms!important}) já zera isso.
+function transitionView(fn){
+  const view = document.getElementById('dayView');
+  view.classList.add('view-fade');
+  fn();
+  void view.offsetWidth; // força reflow: sem isso o navegador não percebe o estado "fade" antes de tirar a classe
+  requestAnimationFrame(()=>{ view.classList.remove('view-fade'); });
+}
+
 function goToDay(i){
   if(i<0 || i>=DAYS.length) return;
   active = i;
   renderNav();
-  renderDay();
+  transitionView(renderDay);
   persistState();
 }
 
@@ -55,8 +78,10 @@ function setMode(m){
   mode = m;
   document.getElementById('btnByDay').classList.toggle('active', m==='byday');
   document.getElementById('btnSummary').classList.toggle('active', m==='summary');
-  document.getElementById('dayNav').style.display = (m==='byday') ? 'flex' : 'none';
-  if(m==='byday'){ renderNav(); renderDay(); } else { renderSummary(); }
+  // O CSS decide como esconder a nav por breakpoint (colapsa no mobile,
+  // só fica invisível no desktop pra não deslocar a coluna do conteúdo — ver styles.css).
+  document.documentElement.setAttribute('data-mode', m);
+  transitionView(()=>{ if(m==='byday'){ renderNav(); renderDay(); } else { renderSummary(); } });
   persistState();
 }
 document.getElementById('btnByDay').onclick = ()=>setMode('byday');
@@ -64,7 +89,6 @@ document.getElementById('btnSummary').onclick = ()=>setMode('summary');
 
 const THEME_KEY = 'themeMode';
 const THEME_LABELS = {auto:'AUTO', light:'CLARO', dark:'ESCURO'};
-const THEME_ICONS = {light:'☀', dark:'🌙'};
 
 function getStoredThemeMode(){
   try{ return localStorage.getItem(THEME_KEY) || 'auto'; }catch(err){ return 'auto'; }
@@ -80,7 +104,7 @@ function applyTheme(mode){
   document.documentElement.setAttribute('data-theme', effective);
   const btn = document.getElementById('themeToggle');
   if(btn){
-    btn.textContent = (THEME_ICONS[effective] || '') + ' ' + THEME_LABELS[mode];
+    btn.innerHTML = icon(effective==='dark' ? 'moon' : 'sun') + ' ' + THEME_LABELS[mode];
     btn.setAttribute('aria-label', 'Tema: '+THEME_LABELS[mode]+'. Toque para trocar.');
   }
 }
@@ -162,7 +186,7 @@ function renderSummary(){
 
       <div class="summary-intro">Toque em um dia pra abrir o detalhe · valores em euros, referentes só às atividades/transporte/comida daquele dia (hospedagem já está no total geral) · Trens/Alimentação/Atrações acima são calculados a partir dos itens do roteiro (câmbio de referência: ${EXCHANGE_RATE.toLocaleString('pt-BR')})</div>
       <div style="text-align:center; padding-bottom:14px;">
-        <button type="button" class="icsbtn" id="exportAllBtn">📅 Exportar roteiro completo (.ics)</button>
+        <button type="button" class="icsbtn" id="exportAllBtn">${icon('calendar')} Exportar roteiro completo (.ics)</button>
       </div>
       <div id="sdayList"></div>
       <div class="foot-note" style="border:1px solid var(--line); border-radius:12px; margin-top:10px; background:var(--paper-raised);">
@@ -195,7 +219,7 @@ function renderSummary(){
     titleEl.textContent = day.title;
     const hotelEl = document.createElement('div');
     hotelEl.className = 'sd-hotel';
-    hotelEl.textContent = (day.hotel ? '🏨 '+day.hotel : day.hotelNote);
+    hotelEl.innerHTML = (day.hotel ? icon('hotel')+' '+day.hotel : day.hotelNote);
     midEl.appendChild(titleEl);
     midEl.appendChild(hotelEl);
 
@@ -250,7 +274,7 @@ function getMapsLinksFor(item, day){
   // Hotel: endereço exato
   if(a.includes('Check-in') || a.includes('Checkout')){
     for(const [name, addr] of Object.entries(HOTEL_ADDRESSES)){
-      if(a.includes(name)) links.push({label:'📍 '+name+' no Maps', url: mapsUrl(addr)});
+      if(a.includes(name)) links.push({label:name+' no Maps', url: mapsUrl(addr), icon:'pin'});
     }
     return links;
   }
@@ -258,7 +282,7 @@ function getMapsLinksFor(item, day){
   // Trecho de transporte "A → B": um pino pra cada ponta
   if(a.includes(' → ')){
     a.split(' → ').map(s=>s.trim()).forEach(place=>{
-      links.push({label:'📍 '+place, url: mapsUrl(place+', Italy')});
+      links.push({label:place, url: mapsUrl(place+', Italy'), icon:'pin'});
     });
     return links;
   }
@@ -273,7 +297,7 @@ function getMapsLinksFor(item, day){
     .trim();
 
   if(place && place.toLowerCase() !== day.cityLabel.toLowerCase()){
-    links.push({label:'📍 Ver no Google Maps', url: mapsUrl(place + ', ' + day.cityLabel)});
+    links.push({label:'Ver no Google Maps', url: mapsUrl(place + ', ' + day.cityLabel), icon:'pin'});
   }
   return links;
 }
@@ -483,10 +507,10 @@ function renderDay(){
         </div>
         <div class="db-value">${fmtEUR(day.budget)}</div>
       </div>` : ''}
-      <div class="foot-note">🌙 ${day.end}</div>
+      <div class="foot-note">${icon('moon')} ${day.end}</div>
       <div class="foot-note" style="border-top:1px dashed var(--line); flex-wrap:wrap;">
-        <button type="button" class="icsbtn" id="exportDayBtn">📅 Exportar este dia (.ics)</button>
-        <button type="button" class="icsbtn" id="shareBtn">🔗 Compartilhar este dia</button>
+        <button type="button" class="icsbtn" id="exportDayBtn">${icon('calendar')} Exportar este dia (.ics)</button>
+        <button type="button" class="icsbtn" id="shareBtn">${icon('link')} Compartilhar este dia</button>
       </div>
     </div>
   `;
@@ -527,7 +551,7 @@ function renderDay(){
     const metaEl = document.createElement('div');
     metaEl.className = 'meta';
     if(it.dur && it.dur!=='—'){
-      const s = document.createElement('span'); s.className='m'; s.textContent = '⏱ '+it.dur; metaEl.appendChild(s);
+      const s = document.createElement('span'); s.className='m'; s.innerHTML = icon('clock')+' '+it.dur; metaEl.appendChild(s);
     }
     if(it.tr && it.tr!=='—'){
       const s = document.createElement('span'); s.className='m'; s.textContent = it.tr; metaEl.appendChild(s);
@@ -554,7 +578,7 @@ function renderDay(){
         a.href = l.url;
         a.target = '_blank';
         a.rel = 'noopener noreferrer';
-        a.textContent = '↗ ' + l.label;
+        a.innerHTML = (l.icon ? icon(l.icon)+' ' : '') + '↗ ' + l.label;
         a.addEventListener('click', (e)=> e.stopPropagation());
         linksEl.appendChild(a);
       });
