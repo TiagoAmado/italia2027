@@ -71,7 +71,6 @@ function goToDay(i){
   active = i;
   renderNav();
   transitionView(renderDay);
-  window.scrollTo({top:0, left:0, behavior:'auto'});
   persistState();
 }
 
@@ -308,7 +307,7 @@ function renderSummary(){
     card.appendChild(priceEl);
 
     // dayIndex é capturado por valor nesta própria iteração do forEach — não muda depois.
-    const open = function(){ active = dayIndex; setMode('byday'); };
+    const open = function(){ active = dayIndex; setMode('byday'); window.scrollTo({top:0, left:0, behavior:'auto'}); };
     card.addEventListener('click', open);
     card.addEventListener('keydown', function(e){
       if(e.key==='Enter' || e.key===' '){ e.preventDefault(); open(); }
