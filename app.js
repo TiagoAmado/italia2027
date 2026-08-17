@@ -151,6 +151,18 @@ function categorySumsEUR(){
   return sums;
 }
 
+function hotelNightsSummary(){
+  const nights = {};
+  DAYS.forEach(day=>{
+    const m = /^Dormindo no (.+?) \(/.exec(day.end || '');
+    if(!m) return;
+    nights[m[1]] = (nights[m[1]] || 0) + 1;
+  });
+  return HOTELS
+    .map(([name])=>({name, nights: nights[name] || 0, pricePerNight: HOTEL_PRICES_EUR[name] ?? null}))
+    .filter(h=>h.nights>0);
+}
+
 function renderSummary(){
   const view = document.getElementById('dayView');
   const totalDaily = DAYS.reduce((s,d)=>s+d.budget,0);
@@ -163,6 +175,18 @@ function renderSummary(){
   const atracaoBRL = cat.atracao * EXCHANGE_RATE;
   const totalMin = FIXED_COSTS_BRL.passagens + FIXED_COSTS_BRL.hoteis + transporteBRL + comidaBRL + atracaoBRL + FIXED_COSTS_BRL.seguroMiscMin;
   const totalMax = FIXED_COSTS_BRL.passagens + FIXED_COSTS_BRL.hoteis + transporteBRL + comidaBRL + atracaoBRL + FIXED_COSTS_BRL.seguroMiscMax;
+
+  const hotelStays = hotelNightsSummary();
+  const hotelRowsHTML = hotelStays.map(h=>{
+    const sub = h.pricePerNight!=null ? h.nights*h.pricePerNight : null;
+    return `<tr>
+      <td style="padding:6px 0; border-bottom:1px solid var(--line);">${h.name}</td>
+      <td style="text-align:center; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">${h.nights} noite${h.nights===1?'':'s'}</td>
+      <td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">${h.pricePerNight!=null ? fmtEUR(h.pricePerNight)+'/noite' : 'a confirmar'}</td>
+      <td style="text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--line);">${sub!=null ? fmtEUR(sub) : '—'}</td>
+    </tr>`;
+  }).join('');
+  const hotelTotalEUR = hotelStays.reduce((s,h)=> s + (h.pricePerNight!=null ? h.nights*h.pricePerNight : 0), 0);
 
   view.innerHTML = `
     <div class="summary-wrap">
@@ -182,6 +206,26 @@ function renderSummary(){
             <tr><td style="padding-top:10px; font-weight:700;">Total estimado</td><td style="text-align:right; font-weight:700; font-family:'IBM Plex Mono',monospace; padding-top:10px;">~${fmtBRL(totalMin)}–${fmtBRL(totalMax)}</td></tr>
           </table>
         </div>
+      </div>
+
+      <div class="pass" style="margin-bottom:18px;">
+        <div class="pass-head" style="border-left-color:var(--ink);">
+          <div class="eyebrow" style="color:var(--ink);">Hospedagem</div>
+          <h2>Hotéis selecionados</h2>
+        </div>
+        <div class="items" style="padding:14px 22px 18px;">
+          <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
+            <tr>
+              <td style="padding:6px 0; border-bottom:1px solid var(--line-strong); font-weight:600;">Hotel</td>
+              <td style="text-align:center; border-bottom:1px solid var(--line-strong); font-weight:600;">Diárias</td>
+              <td style="text-align:right; border-bottom:1px solid var(--line-strong); font-weight:600;">Preço/noite</td>
+              <td style="text-align:right; border-bottom:1px solid var(--line-strong); font-weight:600;">Subtotal</td>
+            </tr>
+            ${hotelRowsHTML}
+            <tr><td style="padding-top:10px; font-weight:700;">Total (hotéis c/ preço encontrado)</td><td></td><td></td><td style="text-align:right; font-weight:700; font-family:'IBM Plex Mono',monospace; padding-top:10px;">${fmtEUR(hotelTotalEUR)}</td></tr>
+          </table>
+        </div>
+        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Preço/noite consultado via Booking para as datas reais de cada estadia · "Hotéis" no orçamento geral acima é o valor fixo já pago, não este total</div>
       </div>
 
       <div class="summary-intro">Toque em um dia pra abrir o detalhe · valores em euros, referentes só às atividades/transporte/comida daquele dia (hospedagem já está no total geral) · Trens/Alimentação/Atrações acima são calculados a partir dos itens do roteiro (câmbio de referência: ${EXCHANGE_RATE.toLocaleString('pt-BR')})</div>

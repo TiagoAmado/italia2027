@@ -40,6 +40,20 @@ const HOTELS = [
   ['Hotel Saturnia & International', 'https://www.booking.com/hotel/it/hotelsaturniainternational.html']
 ];
 
+// Preço médio por diária (€), consultado via Booking MCP nas datas reais de cada
+// estadia (checkin/checkout batendo com as marcações ci:true em DAYS) e dividido
+// pelo número de noites da consulta. Não recalcula sozinho — atualizar manualmente
+// se os preços forem reconsultados. 'Aenea Superior Inn' não aparece no inventário
+// buscável do Booking MCP (mesma limitação de bot-blocking já registrada nos links
+// manuais); preço null nesse caso.
+const HOTEL_PRICES_EUR = {
+  'Aenea Superior Inn': null,
+  'Grace Suites': 160.00,
+  'Palazzo dal Borgo': 155.60,
+  'Luxury Station Suite': 126.90,
+  'Hotel Saturnia & International': 275.40
+};
+
 const ATTRACTIONS = [
   ['Coliseu', 'https://parcocolosseo.it', 'Site oficial · Parco Colosseo'],
   ['Museus do Vaticano', 'https://www.museivaticani.va', 'Site oficial · Museus do Vaticano'],
