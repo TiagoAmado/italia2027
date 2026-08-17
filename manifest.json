@@ -1,0 +1,15 @@
+{
+  "name": "Lua de Mel — Itália · Roteiro",
+  "short_name": "Roteiro Itália",
+  "description": "Roteiro interativo da lua de mel pela Itália (Roma, Sorrento, Florença, Bologna, Veneza).",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#FAF6EF",
+  "theme_color": "#A8552E",
+  "lang": "pt-BR",
+  "icons": [
+    {"src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"},
+    {"src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable"}
+  ]
+}
