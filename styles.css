@@ -440,3 +440,16 @@ footer.bud tr.total td{font-weight:700; border-bottom:none; padding-top:10px;}
   white-space:nowrap;
 }
 .sday .sd-price small{display:block; font-weight:400; font-size:9.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em;}
+
+@media print{
+  body{background:#fff; color:#000;}
+  .viewtoggle, nav.days, .icsbtn, .legend, .today-badge, .stub.today::after{display:none !important;}
+  header.top{position:static; background:none; border-bottom:1px solid #000;}
+  .app{max-width:100%;}
+  .pass{box-shadow:none; border:1px solid #000; break-inside:avoid; margin-bottom:14px;}
+  .pass-head{background:none; border-left-color:#000;}
+  .perf{display:none;}
+  .item{break-inside:avoid; cursor:default;}
+  .item-links{display:flex !important;}
+  .item .body .meta .price{background:none; border-color:#000;}
+}

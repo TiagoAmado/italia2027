@@ -43,6 +43,14 @@ function persistState(){
   try{ history.replaceState(null, '', mode==='summary' ? '#resumo' : '#dia-'+(active+1)); }catch(err){ /* ignora se indisponível */ }
 }
 
+function goToDay(i){
+  if(i<0 || i>=DAYS.length) return;
+  active = i;
+  renderNav();
+  renderDay();
+  persistState();
+}
+
 function setMode(m){
   mode = m;
   document.getElementById('btnByDay').classList.toggle('active', m==='byday');
@@ -225,7 +233,7 @@ function renderNav(){
     btn.style.setProperty('--accent-city-soft', col.soft);
     btn.setAttribute('aria-label', day.d+' '+day.wk+' '+day.title + (i===todayIdx ? ' (hoje)':''));
     btn.innerHTML = `<div class="dnum">${day.d.split('/')[0]}</div><div class="dwk">${day.wk.slice(0,3)}</div><div class="cdot"></div>`;
-    btn.onclick = ()=>{active=i; renderNav(); renderDay(); persistState();};
+    btn.onclick = ()=>goToDay(i);
     nav.appendChild(btn);
   });
   try{ nav.children[active].scrollIntoView({inline:'center', block:'nearest'}); }catch(err){ /* ambiente sem suporte a scrollIntoView com opções — ignora */ }
@@ -386,6 +394,66 @@ function exportAllICS(){
   downloadICS(buildICS(DAYS), 'roteiro-italia-completo.ics');
 }
 
+function fallbackShare(url){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(showShareFeedback).catch(()=>{ window.prompt('Copie o link:', url); });
+    return;
+  }
+  window.prompt('Copie o link:', url);
+}
+
+function shareDay(day){
+  const url = location.href;
+  const shareData = {
+    title: 'Roteiro Itália — ' + day.title,
+    text: day.d + ' · ' + day.wk + ' — ' + day.title,
+    url
+  };
+  // Chamar navigator.share() numa página aberta via file:// (sem servidor) derruba o
+  // processo do Chrome inteiro (RESULT_CODE_KILLED_BAD_MESSAGE) — nem try/catch pega,
+  // porque o crash acontece no nível de IPC do navegador, antes do JS rodar. Por isso
+  // só tentamos Web Share em http(s) mesmo; qualquer outro esquema vai direto pro fallback.
+  const canUseWebShare = navigator.share && /^https?:$/.test(location.protocol);
+  if(canUseWebShare){
+    try{
+      navigator.share(shareData).catch(()=>{ /* usuário cancelou o share sheet — não é erro */ });
+      return;
+    }catch(err){
+      fallbackShare(url);
+      return;
+    }
+  }
+  fallbackShare(url);
+}
+
+function showShareFeedback(){
+  const btn = document.getElementById('shareBtn');
+  if(!btn) return;
+  const original = btn.textContent;
+  btn.textContent = '✓ Link copiado';
+  setTimeout(()=>{ btn.textContent = original; }, 1800);
+}
+
+function initSwipe(){
+  const el = document.getElementById('dayView');
+  let startX = 0, startY = 0, startTime = 0;
+  el.addEventListener('touchstart', (e)=>{
+    if(e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    startTime = Date.now();
+  }, {passive:true});
+  el.addEventListener('touchend', (e)=>{
+    if(mode !== 'byday') return;
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - startX;
+    const dy = touch.clientY - startY;
+    if(Date.now() - startTime > 600) return;
+    if(Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if(dx < 0){ goToDay(active + 1); } else { goToDay(active - 1); }
+  }, {passive:true});
+}
+
 function renderDay(){
   const day = DAYS[active];
   const col = CITY_COLORS[day.city];
@@ -416,13 +484,15 @@ function renderDay(){
         <div class="db-value">${fmtEUR(day.budget)}</div>
       </div>` : ''}
       <div class="foot-note">🌙 ${day.end}</div>
-      <div class="foot-note" style="border-top:1px dashed var(--line);">
+      <div class="foot-note" style="border-top:1px dashed var(--line); flex-wrap:wrap;">
         <button type="button" class="icsbtn" id="exportDayBtn">📅 Exportar este dia (.ics)</button>
+        <button type="button" class="icsbtn" id="shareBtn">🔗 Compartilhar este dia</button>
       </div>
     </div>
   `;
 
   document.getElementById('exportDayBtn').addEventListener('click', ()=>exportDayICS(day));
+  document.getElementById('shareBtn').addEventListener('click', ()=>shareDay(day));
 
   const itemsList = document.getElementById('itemsList');
   day.items.forEach(it=>{
@@ -511,3 +581,4 @@ if('serviceWorker' in navigator){
 
 loadState();
 setMode(mode);
+initSwipe();
