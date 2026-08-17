@@ -585,13 +585,6 @@ function renderDay(){
     } else {
       actEl.textContent = it.a;
     }
-    if(links.length){
-      const chev = document.createElement('span');
-      chev.className = 'chev';
-      chev.textContent = '▸';
-      actEl.appendChild(chev);
-    }
-
     const metaEl = document.createElement('div');
     metaEl.className = 'meta';
     if(it.dur && it.dur!=='—'){
@@ -614,19 +607,40 @@ function renderDay(){
       bodyEl.appendChild(f);
     }
 
-    if(links.length){
-      const linksEl = document.createElement('div');
-      linksEl.className = 'item-links';
-      links.forEach(l=>{
-        const a = document.createElement('a');
-        a.href = l.url;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        a.innerHTML = (l.icon ? icon(l.icon)+' ' : '') + '↗ ' + l.label;
-        a.addEventListener('click', (e)=> e.stopPropagation());
-        linksEl.appendChild(a);
-      });
-      bodyEl.appendChild(linksEl);
+    if(links.length || it.desc){
+      const chev = document.createElement('span');
+      chev.className = 'chev';
+      chev.textContent = '▸';
+      actEl.appendChild(chev);
+    }
+
+    if(links.length || it.desc){
+      const expandEl = document.createElement('div');
+      expandEl.className = 'item-expand';
+
+      if(it.desc){
+        const descEl = document.createElement('p');
+        descEl.className = 'item-desc';
+        descEl.textContent = it.desc;
+        expandEl.appendChild(descEl);
+      }
+
+      if(links.length){
+        const linksEl = document.createElement('div');
+        linksEl.className = 'item-links';
+        links.forEach(l=>{
+          const a = document.createElement('a');
+          a.href = l.url;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.innerHTML = (l.icon ? icon(l.icon)+' ' : '') + '↗ ' + l.label;
+          a.addEventListener('click', (e)=> e.stopPropagation());
+          linksEl.appendChild(a);
+        });
+        expandEl.appendChild(linksEl);
+      }
+
+      bodyEl.appendChild(expandEl);
 
       const toggle = ()=> row.classList.toggle('expanded');
       row.addEventListener('click', toggle);

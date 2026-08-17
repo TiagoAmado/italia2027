@@ -262,16 +262,30 @@ main.day.view-fade{opacity:0; transform:translateY(6px);}
   transition:transform .15s ease;
 }
 .item.expanded .chev{transform:rotate(90deg);}
-.item-links{
+.item-expand{
   grid-column:1 / -1;
   display:none;
+}
+.item.expanded .item-expand{display:block;}
+.item-desc{
+  margin:10px 0 0;
+  padding:10px 12px;
+  font-size:12.5px;
+  font-style:italic;
+  line-height:1.55;
+  color:var(--ink);
+  background:var(--paper-sunken);
+  border:1px solid var(--line);
+  border-radius:8px;
+}
+.item-links{
+  display:flex;
   flex-wrap:wrap;
   gap:8px;
   margin-top:10px;
   padding-top:10px;
   border-top:1px dashed var(--line);
 }
-.item.expanded .item-links{display:flex;}
 .item-links a{
   font-family:'IBM Plex Mono', monospace;
   font-size:11px;
@@ -491,6 +505,7 @@ footer.bud tr.total td{font-weight:700; border-bottom:none; padding-top:10px;}
   .pass-head{background:none; border-left-color:#000;}
   .perf{display:none;}
   .item{break-inside:avoid; cursor:default;}
+  .item-expand{display:block !important;}
   .item-links{display:flex !important;}
   .item .body .meta .price{background:none; border-color:#000;}
 }
