@@ -25,7 +25,7 @@ const CITY_COLORS = {
 };
 
 const HOTEL_ADDRESSES = {
-  'Aenea Superior Inn': 'Via Urbana, 156, 00184 Roma RM, Italy',
+  'Aenea Inn': 'Via Urbana, 156, 00184 Roma RM, Italy',
   'Grace Suites': 'Via Luigi de Maio, 14, 80067 Sorrento NA, Italy',
   'Palazzo dal Borgo': 'Via della Scala, 6, 50123 Firenze FI, Italy',
   'Luxury Station Suite': 'Via Giovanni Amendola, 15, 40121 Bologna BO, Italy',
@@ -33,7 +33,7 @@ const HOTEL_ADDRESSES = {
 };
 
 const HOTELS = [
-  ['Aenea Superior Inn', 'https://www.booking.com/hotel/it/aenea-superior-inn.html'],
+  ['Aenea Inn', 'https://www.booking.com/hotel/it/aenea-superior-inn.html'],
   ['Grace Suites', 'https://www.booking.com/hotel/it/grace-suites.html'],
   ['Palazzo dal Borgo', 'https://www.booking.com/hotel/it/aprile-palazzo-dal-borgo.html'],
   ['Luxury Station Suite', 'https://www.booking.com/hotel/it/luxury-station-suite-1.html'],
@@ -43,11 +43,9 @@ const HOTELS = [
 // Preço médio por diária (€), consultado via Booking MCP nas datas reais de cada
 // estadia (checkin/checkout batendo com as marcações ci:true em DAYS) e dividido
 // pelo número de noites da consulta. Não recalcula sozinho — atualizar manualmente
-// se os preços forem reconsultados. 'Aenea Superior Inn' não aparece no inventário
-// buscável do Booking MCP (mesma limitação de bot-blocking já registrada nos links
-// manuais); preço null nesse caso.
+// se os preços forem reconsultados.
 const HOTEL_PRICES_EUR = {
-  'Aenea Superior Inn': null,
+  'Aenea Inn': 171.00,
   'Grace Suites': 160.00,
   'Palazzo dal Borgo': 155.60,
   'Luxury Station Suite': 126.90,
@@ -83,23 +81,23 @@ const DAYS = [
  items:[
   {t:"11:35", a:"Chegada em Fiumicino", dur:"—", tr:"—", p:"—"},
   {t:"11:45", a:"Fiumicino → Roma Termini", dur:"Leonardo Express ~32min · Táxi ~40min", tr:"Leonardo Express / Táxi fixo", p:"€28,00 / €50,00", cat:"transporte"},
-  {t:"~12:30", a:"Check-in — Aenea Superior Inn", dur:"30 min", tr:"A pé / metrô (10 min)", p:"—", ci:true},
+  {t:"~12:30", a:"Check-in — Aenea Inn", dur:"30 min", tr:"A pé / metrô (10 min)", p:"—", ci:true},
   {t:"14:30–15:30", a:"Fontana di Trevi", dur:"1h", tr:"A pé (15 min do hotel)", p:"grátis", cat:"atracao"},
   {t:"15:45–16:30", a:"Panteão", dur:"45 min", tr:"A pé (8 min)", p:"€10,00", cat:"atracao"},
   {t:"16:45–18:00", a:"Piazza Navona (tempo livre)", dur:"1h15", tr:"A pé (16 min)", p:"grátis", cat:"atracao"},
   {t:"19:00–20:30", a:"Jantar — Tonnarello (Trastevere)", dur:"1h30", tr:"A pé ~35min (grátis) / Táxi ~15min (~€13,00)", p:"€65,00", cat:"comida"}
- ], end:"Dormindo no Aenea Superior Inn (Roma)"},
+ ], end:"Dormindo no Aenea Inn (Roma)"},
 
-{d:"24/3", wk:"Quarta", city:"roma", cityLabel:"Roma", title:"Roma Antiga", hotel:"Aenea Superior Inn", hotelNote:"Hospedados no Aenea Superior Inn (Roma)", budget:150,
+{d:"24/3", wk:"Quarta", city:"roma", cityLabel:"Roma", title:"Roma Antiga", hotel:"Aenea Inn", hotelNote:"Hospedados no Aenea Inn (Roma)", budget:150,
  items:[
   {t:"8:00–11:00", a:"Coliseu + Fórum Romano + Palatino", dur:"3h", tr:"A pé (15 min do hotel)", p:"€40,00", flag:"Reserva obrigatória", cat:"atracao"},
   {t:"11:15–11:45", a:"Circo Máximo", dur:"30 min", tr:"A pé (12 min)", p:"grátis", cat:"atracao"},
   {t:"13:00–14:30", a:"Almoço + descanso (região do Coliseu)", dur:"1h30", tr:"—", p:"€35,00", cat:"comida"},
   {t:"15:00–18:00", a:"Tempo livre / descanso", dur:"livre", tr:"—", p:"—"},
   {t:"19:30–21:00", a:"Jantar — Roscioli", dur:"1h30", tr:"A pé (23 min)", p:"€75,00", flag:"Reserva antecipada", cat:"comida"}
- ], end:"Dormindo no Aenea Superior Inn (Roma)"},
+ ], end:"Dormindo no Aenea Inn (Roma)"},
 
-{d:"25/3", wk:"Quinta", city:"roma", cityLabel:"Roma", title:"Vaticano", hotel:"Aenea Superior Inn", hotelNote:"Hospedados no Aenea Superior Inn (Roma)", budget:227,
+{d:"25/3", wk:"Quinta", city:"roma", cityLabel:"Roma", title:"Vaticano", hotel:"Aenea Inn", hotelNote:"Hospedados no Aenea Inn (Roma)", budget:227,
  items:[
   {t:"8:00–11:00", a:"Museus do Vaticano + Capela Sistina", dur:"3h", tr:"A pé/metrô (12 min)", p:"€50,00", flag:"Reserva obrigatória", cat:"atracao"},
   {t:"11:15–12:15", a:"Basílica de São Pedro + subida à cúpula", dur:"1h", tr:"A pé (15 min dos Museus)", p:"€16,00", cat:"atracao"},
@@ -108,11 +106,11 @@ const DAYS = [
   {t:"13:45–14:45", a:"Almoço (região de Piazza Navona)", dur:"1h", tr:"A pé (10 min)", p:"€40,00", cat:"comida"},
   {t:"15:00–19:30", a:"Tempo livre / descanso", dur:"livre", tr:"—", p:"—"},
   {t:"20:00–21:30", a:"Jantar — Settimio All'Arancio", dur:"1h30", tr:"A pé ~25min (grátis) / Táxi ~10min (~€10,00)", p:"€85,00", cat:"comida"}
- ], end:"Dormindo no Aenea Superior Inn (Roma)"},
+ ], end:"Dormindo no Aenea Inn (Roma)"},
 
-{d:"26/3", wk:"Sexta", city:"sorrento", cityLabel:"Sorrento", title:"Roma → Pompeia → Sorrento", hotel:"Aenea Superior Inn", hotelNote:"Hospedados no Aenea Superior Inn (Roma)", budget:258,
+{d:"26/3", wk:"Sexta", city:"sorrento", cityLabel:"Sorrento", title:"Roma → Pompeia → Sorrento", hotel:"Aenea Inn", hotelNote:"Hospedados no Aenea Inn (Roma)", budget:258,
  items:[
-  {t:"7:00", a:"Checkout — Aenea Superior Inn", dur:"—", tr:"—", p:"—", ci:true},
+  {t:"7:00", a:"Checkout — Aenea Inn", dur:"—", tr:"—", p:"—", ci:true},
   {t:"7:15–8:25", a:"Roma Termini → Napoli Centrale", dur:"1h10", tr:"Frecciarossa/Italo", p:"€75,00", cat:"transporte"},
   {t:"8:25–8:55", a:"Napoli Centrale → Pompei Scavi", dur:"~30 min", tr:"EAV Circumvesuviana", p:"€14,00", cat:"transporte"},
   {t:"9:00–13:00", a:"Pompeia — Parque Arqueológico", dur:"~3h", tr:"A pé (caminhada livre pelo sítio)", p:"€50,00", flag:"Ingresso antecipado · mala no depósito grátis da Porta Marina", cat:"atracao"},
@@ -215,14 +213,14 @@ const DAYS = [
   {t:"9:00–9:45", a:"Fondamenta delle Zattere (Dorsoduro)", dur:"45 min", tr:"A pé (11 min)", p:"grátis", cat:"atracao"},
   {t:"10:15", a:"Checkout — Hotel Saturnia & International", dur:"—", tr:"—", p:"—", ci:true},
   {t:"10:30–14:00", a:"Venezia Santa Lucia → Roma Termini", dur:"~3h30–4h", tr:"Frecciarossa", p:"€130,00", cat:"transporte"},
-  {t:"15:00", a:"Check-in — Aenea Superior Inn", dur:"—", tr:"—", p:"—", ci:true},
+  {t:"15:00", a:"Check-in — Aenea Inn", dur:"—", tr:"—", p:"—", ci:true},
   {t:"20:00–21:30", a:"Jantar de despedida — Trattoria Da Enzo (Trastevere)", dur:"1h30", tr:"A pé ~27min (grátis) / Táxi ~12min (~€13,00)", p:"€75,00", cat:"comida"}
- ], end:"Dormindo no Aenea Superior Inn (Roma)"},
+ ], end:"Dormindo no Aenea Inn (Roma)"},
 
-{d:"5/4", wk:"Segunda", city:"roma", cityLabel:"Roma", title:"Volta ao Brasil", hotel:"Aenea Superior Inn", hotelNote:"Hospedados no Aenea Superior Inn (Roma)", budget:28,
+{d:"5/4", wk:"Segunda", city:"roma", cityLabel:"Roma", title:"Volta ao Brasil", hotel:"Aenea Inn", hotelNote:"Hospedados no Aenea Inn (Roma)", budget:28,
  items:[
   {t:"Manhã", a:"Livre / últimas compras", dur:"livre", tr:"—", p:"—"},
-  {t:"12:00", a:"Checkout — Aenea Superior Inn", dur:"—", tr:"—", p:"—", ci:true},
+  {t:"12:00", a:"Checkout — Aenea Inn", dur:"—", tr:"—", p:"—", ci:true},
   {t:"19:00", a:"Roma Termini → Fiumicino", dur:"Leonardo Express ~32min · Táxi ~40min", tr:"Leonardo Express / Táxi fixo", p:"€28,00 / €50,00", cat:"transporte"},
   {t:"22:05", a:"Voo FCO → GRU", dur:"—", tr:"ITA Airways AZ 674", p:"—"}
  ], end:"Em voo, rumo a São Paulo"}
