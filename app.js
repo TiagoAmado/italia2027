@@ -171,20 +171,6 @@ function renderSummary(){
   view.style.removeProperty('--accent-city');
   view.style.removeProperty('--accent-city-soft');
 
-  const cat = categorySumsEUR();
-  const transporteBRL = cat.transporte * EXCHANGE_RATE;
-  const comidaBRL = cat.comida * EXCHANGE_RATE;
-  const atracaoBRL = cat.atracao * EXCHANGE_RATE;
-  const totalMin = FIXED_COSTS_BRL.passagens + FIXED_COSTS_BRL.hoteis + transporteBRL + comidaBRL + atracaoBRL + FIXED_COSTS_BRL.seguroMiscMin;
-  const totalMax = FIXED_COSTS_BRL.passagens + FIXED_COSTS_BRL.hoteis + transporteBRL + comidaBRL + atracaoBRL + FIXED_COSTS_BRL.seguroMiscMax;
-
-  const passagensEUR = FIXED_COSTS_BRL.passagens / EXCHANGE_RATE;
-  const hoteisEUR = FIXED_COSTS_BRL.hoteis / EXCHANGE_RATE;
-  const seguroMiscMinEUR = FIXED_COSTS_BRL.seguroMiscMin / EXCHANGE_RATE;
-  const seguroMiscMaxEUR = FIXED_COSTS_BRL.seguroMiscMax / EXCHANGE_RATE;
-  const totalMinEUR = totalMin / EXCHANGE_RATE;
-  const totalMaxEUR = totalMax / EXCHANGE_RATE;
-
   const hotelStays = hotelNightsSummary();
   const hotelRowsHTML = hotelStays.map(h=>{
     const sub = h.pricePerNight!=null ? h.nights*h.pricePerNight : null;
@@ -197,6 +183,21 @@ function renderSummary(){
     </div>`;
   }).join('');
   const hotelTotalEUR = hotelStays.reduce((s,h)=> s + (h.pricePerNight!=null ? h.nights*h.pricePerNight : 0), 0);
+  const hotelHasUnpriced = hotelStays.some(h=>h.pricePerNight==null);
+
+  const cat = categorySumsEUR();
+  const hoteisBRL = hotelTotalEUR * EXCHANGE_RATE;
+  const transporteBRL = cat.transporte * EXCHANGE_RATE;
+  const comidaBRL = cat.comida * EXCHANGE_RATE;
+  const atracaoBRL = cat.atracao * EXCHANGE_RATE;
+  const totalMin = FIXED_COSTS_BRL.passagens + hoteisBRL + transporteBRL + comidaBRL + atracaoBRL + FIXED_COSTS_BRL.seguroMiscMin;
+  const totalMax = FIXED_COSTS_BRL.passagens + hoteisBRL + transporteBRL + comidaBRL + atracaoBRL + FIXED_COSTS_BRL.seguroMiscMax;
+
+  const passagensEUR = FIXED_COSTS_BRL.passagens / EXCHANGE_RATE;
+  const seguroMiscMinEUR = FIXED_COSTS_BRL.seguroMiscMin / EXCHANGE_RATE;
+  const seguroMiscMaxEUR = FIXED_COSTS_BRL.seguroMiscMax / EXCHANGE_RATE;
+  const totalMinEUR = totalMin / EXCHANGE_RATE;
+  const totalMaxEUR = totalMax / EXCHANGE_RATE;
 
   view.innerHTML = `
     <div class="summary-wrap">
@@ -213,7 +214,7 @@ function renderSummary(){
             </div>
             <div class="budget-row">
               <div class="br-label">Hotéis</div>
-              <div class="br-vals"><span class="br-brl">~${fmtBRL(FIXED_COSTS_BRL.hoteis)}</span><span class="br-eur">~${fmtEUR(hoteisEUR)}</span></div>
+              <div class="br-vals"><span class="br-brl">${hotelHasUnpriced?'~':''}${fmtBRL(hoteisBRL)}</span><span class="br-eur">${hotelHasUnpriced?'~':''}${fmtEUR(hotelTotalEUR)}</span></div>
             </div>
             <div class="budget-row">
               <div class="br-label">Trens e transfers</div>
@@ -253,7 +254,7 @@ function renderSummary(){
             </div>
           </div>
         </div>
-        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Preço/noite consultado via Booking para as datas reais de cada estadia · "Hotéis" no orçamento geral acima é o valor fixo já pago, não este total</div>
+        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Preço/noite consultado via Booking para as datas reais de cada estadia — mesmo total usado na linha "Hotéis" do orçamento geral acima</div>
       </div>
 
       <div class="summary-intro">Toque em um dia pra abrir o detalhe · valores em euros, referentes só às atividades/transporte/comida daquele dia (hospedagem já está no total geral) · Trens/Alimentação/Atrações acima são calculados a partir dos itens do roteiro (câmbio de referência: ${EXCHANGE_RATE.toLocaleString('pt-BR')})</div>

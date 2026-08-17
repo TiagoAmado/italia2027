@@ -1,4 +1,4 @@
-const CACHE_NAME = 'roteiro-italia-v10';
+const CACHE_NAME = 'roteiro-italia-v11';
 const APP_SHELL = [
   './',
   './index.html',
