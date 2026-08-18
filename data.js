@@ -4,16 +4,23 @@ const TRIP_YEAR = 2027;
 // dos itens do roteiro) para R$ no resumo geral. Ajustar aqui se a cotação mudar.
 const EXCHANGE_RATE = 6;
 
-// Custos que não são itemizados dia a dia em DAYS (passagens internacionais,
-// seguro/eSIM) — continuam manuais porque não têm de onde ser recalculados
-// automaticamente. Hospedagem NÃO entra aqui: é 100% derivada de HOTEL_PRICES_EUR
-// × noites por hotel via hotelNightsSummary() (ver app.js), igual às categorias
-// computadas (trens/alimentação/atrações).
+// Custo que não é itemizado dia a dia em DAYS (passagens internacionais) —
+// continua manual porque não tem de onde ser recalculado automaticamente.
+// Hospedagem e seguro/eSIM/misc. NÃO entram aqui: são derivados (ver
+// HOTEL_PRICES_EUR/hotelNightsSummary() e INSURANCE_MISC_ITEMS_BRL abaixo).
 const FIXED_COSTS_BRL = {
-  passagens: 15599.61,
-  seguroMiscMin: 1000,
-  seguroMiscMax: 2200
+  passagens: 15599.61
 };
+
+// Itens estimados de seguro/eSIM/imprevistos — cada um pesquisado individualmente
+// (não é um valor contratado ainda). Somados, formam a linha "Seguro / eSIM /
+// misc." do orçamento geral; não têm dia/cidade porque são contratados/comprados
+// antes da viagem, não em um ponto específico do roteiro.
+const INSURANCE_MISC_ITEMS_BRL = [
+  {label: 'Seguro viagem (2 pessoas, 15 dias)', brl: 1100},
+  {label: 'eSIM Itália (2 pessoas, 15 dias)', brl: 560},
+  {label: 'Imprevistos / compras de última hora', brl: 400}
+];
 
 const CITY_COLORS = {
   voo:    {c:"#6B5F52", soft:"#6B5F521a"},

@@ -497,16 +497,25 @@ footer.bud tr.total td{font-weight:700; border-bottom:none; padding-top:10px;}
 .hotel-row-total .hr-sub{font-weight:700; font-size:13.5px;}
 
 .budget-rows{display:flex; flex-direction:column;}
+.budget-row-wrap{border-bottom:1px solid var(--line);}
+.budget-row-wrap:last-of-type{border-bottom:none;}
+.budget-row-wrap.expandable{cursor:pointer;}
 .budget-row{
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
   gap:10px;
   padding:8px 0;
-  border-bottom:1px solid var(--line);
 }
-.budget-row:last-of-type{border-bottom:none;}
 .budget-row .br-label{font-size:13.5px; line-height:1.35; min-width:0;}
+.budget-row .br-label .chev{
+  display:inline-block;
+  margin-left:6px;
+  font-size:10px;
+  color:var(--ink-soft);
+  transition:transform .15s ease;
+}
+.budget-row-wrap.expanded .br-label .chev{transform:rotate(90deg);}
 .budget-row .br-vals{
   display:flex;
   flex-direction:column;
@@ -528,9 +537,18 @@ footer.bud tr.total td{font-weight:700; border-bottom:none; padding-top:10px;}
   margin-top:1px;
   white-space:nowrap;
 }
-.budget-row-total{border-top:1px solid var(--line-strong); border-bottom:none; margin-top:2px; padding-top:12px;}
-.budget-row-total .br-label{font-weight:700;}
-.budget-row-total .br-brl{font-weight:700; font-size:13.5px;}
+.budget-row-detail{display:none; padding:0 0 12px;}
+.budget-row-wrap.expanded .budget-row-detail{display:block;}
+.bd-item{display:flex; justify-content:space-between; gap:10px; padding:3px 0; font-size:11.5px; color:var(--ink-soft);}
+.bd-item .bd-when{font-family:'IBM Plex Mono', monospace; flex:0 0 auto; white-space:nowrap;}
+.bd-item .bd-what{text-align:right; flex:1 1 auto; margin-left:10px;}
+.bd-item .bd-label{text-align:left; flex:1 1 auto;}
+.bd-item .bd-amount{font-family:'IBM Plex Mono', monospace; flex:0 0 auto; white-space:nowrap; margin-left:auto;}
+.bd-note{font-size:11px; font-style:italic; color:var(--ink-soft); margin-top:2px;}
+.budget-row-wrap.budget-row-total{border-top:1px solid var(--line-strong); border-bottom:none; margin-top:2px;}
+.budget-row-wrap.budget-row-total .budget-row{padding-top:12px;}
+.budget-row-wrap.budget-row-total .br-label{font-weight:700;}
+.budget-row-wrap.budget-row-total .br-brl{font-weight:700; font-size:13.5px;}
 
 @media (min-width:900px){
   .app{

@@ -165,6 +165,27 @@ function hotelNightsSummary(){
     .filter(h=>h.nights>0);
 }
 
+// Todos os itens de DAYS cujo item.cat bate com catName, com dia+cidade anexados —
+// alimenta tanto a soma (categorySumsEUR) quanto a lista expandida de cada categoria.
+function categoryItems(catName){
+  return DAYS.flatMap(day => day.items.filter(it=>it.cat===catName).map(it=>({d:day.d, cityLabel:day.cityLabel, a:it.a, p:it.p})));
+}
+
+function bdRow(when, what){
+  return `<div class="bd-item"><span class="bd-when">${when}</span><span class="bd-what">${what}</span></div>`;
+}
+
+function budgetRowHTML(label, brlText, eurText, detailHTML, extraClass){
+  const expandable = !!detailHTML;
+  return `<div class="budget-row-wrap${expandable?' expandable':''}${extraClass?' '+extraClass:''}">
+    <div class="budget-row">
+      <div class="br-label">${label}${expandable ? ' <span class="chev">▸</span>' : ''}</div>
+      <div class="br-vals"><span class="br-brl">${brlText}</span><span class="br-eur">${eurText}</span></div>
+    </div>
+    ${expandable ? `<div class="budget-row-detail">${detailHTML}</div>` : ''}
+  </div>`;
+}
+
 function renderSummary(){
   const view = document.getElementById('dayView');
   const totalDaily = DAYS.reduce((s,d)=>s+d.budget,0);
@@ -184,20 +205,29 @@ function renderSummary(){
   }).join('');
   const hotelTotalEUR = hotelStays.reduce((s,h)=> s + (h.pricePerNight!=null ? h.nights*h.pricePerNight : 0), 0);
   const hotelHasUnpriced = hotelStays.some(h=>h.pricePerNight==null);
+  const hotelDetailHTML = hotelStays.map(h=>bdRow(h.city || '', `${h.name} — ${h.nights} noite${h.nights===1?'':'s'}${h.pricePerNight!=null ? ' — '+fmtEUR(h.nights*h.pricePerNight) : ' — preço a confirmar'}`)).join('');
+
+  const transporteItems = categoryItems('transporte');
+  const comidaItems = categoryItems('comida');
+  const atracaoItems = categoryItems('atracao');
+  const itemDetailHTML = items => items.map(it=>bdRow(`${it.d} · ${it.cityLabel}`, `${it.a}${it.p && it.p!=='—' ? ' — '+it.p : ''}`)).join('');
+
+  const flightItems = DAYS.flatMap(day => day.items.filter(it=>it.a && it.a.startsWith('Voo ')).map(it=>({d:day.d, cityLabel:day.cityLabel, a:it.a})));
+  const passagensDetailHTML = flightItems.map(it=>bdRow(`${it.d} · ${it.cityLabel}`, it.a)).join('') + '<div class="bd-note">Valor pago em conjunto, não quebrado por trecho.</div>';
+
+  const seguroDetailHTML = INSURANCE_MISC_ITEMS_BRL.map(i=>`<div class="bd-item"><span class="bd-label">${i.label}</span><span class="bd-amount">${fmtBRL(i.brl)}</span></div>`).join('');
+  const seguroBRL = INSURANCE_MISC_ITEMS_BRL.reduce((s,i)=>s+i.brl,0);
 
   const cat = categorySumsEUR();
   const hoteisBRL = hotelTotalEUR * EXCHANGE_RATE;
   const transporteBRL = cat.transporte * EXCHANGE_RATE;
   const comidaBRL = cat.comida * EXCHANGE_RATE;
   const atracaoBRL = cat.atracao * EXCHANGE_RATE;
-  const totalMin = FIXED_COSTS_BRL.passagens + hoteisBRL + transporteBRL + comidaBRL + atracaoBRL + FIXED_COSTS_BRL.seguroMiscMin;
-  const totalMax = FIXED_COSTS_BRL.passagens + hoteisBRL + transporteBRL + comidaBRL + atracaoBRL + FIXED_COSTS_BRL.seguroMiscMax;
+  const totalBRL = FIXED_COSTS_BRL.passagens + hoteisBRL + transporteBRL + comidaBRL + atracaoBRL + seguroBRL;
 
   const passagensEUR = FIXED_COSTS_BRL.passagens / EXCHANGE_RATE;
-  const seguroMiscMinEUR = FIXED_COSTS_BRL.seguroMiscMin / EXCHANGE_RATE;
-  const seguroMiscMaxEUR = FIXED_COSTS_BRL.seguroMiscMax / EXCHANGE_RATE;
-  const totalMinEUR = totalMin / EXCHANGE_RATE;
-  const totalMaxEUR = totalMax / EXCHANGE_RATE;
+  const seguroEUR = seguroBRL / EXCHANGE_RATE;
+  const totalEUR = totalBRL / EXCHANGE_RATE;
 
   view.innerHTML = `
     <div class="summary-wrap">
@@ -208,34 +238,13 @@ function renderSummary(){
         </div>
         <div class="items" style="padding:10px 16px 6px;">
           <div class="budget-rows">
-            <div class="budget-row">
-              <div class="br-label">Passagens Brasil–Itália (pago)</div>
-              <div class="br-vals"><span class="br-brl">${fmtBRL(FIXED_COSTS_BRL.passagens)}</span><span class="br-eur">${fmtEUR(passagensEUR)}</span></div>
-            </div>
-            <div class="budget-row">
-              <div class="br-label">Hotéis</div>
-              <div class="br-vals"><span class="br-brl">${hotelHasUnpriced?'~':''}${fmtBRL(hoteisBRL)}</span><span class="br-eur">${hotelHasUnpriced?'~':''}${fmtEUR(hotelTotalEUR)}</span></div>
-            </div>
-            <div class="budget-row">
-              <div class="br-label">Trens e transfers</div>
-              <div class="br-vals"><span class="br-brl">${fmtBRL(transporteBRL)}</span><span class="br-eur">${fmtEUR(cat.transporte)}</span></div>
-            </div>
-            <div class="budget-row">
-              <div class="br-label">Alimentação</div>
-              <div class="br-vals"><span class="br-brl">${fmtBRL(comidaBRL)}</span><span class="br-eur">${fmtEUR(cat.comida)}</span></div>
-            </div>
-            <div class="budget-row">
-              <div class="br-label">Atrações (inclui Ferrari/test drive)</div>
-              <div class="br-vals"><span class="br-brl">${fmtBRL(atracaoBRL)}</span><span class="br-eur">${fmtEUR(cat.atracao)}</span></div>
-            </div>
-            <div class="budget-row">
-              <div class="br-label">Seguro / eSIM / misc. (estimado)</div>
-              <div class="br-vals"><span class="br-brl">~${fmtBRL(FIXED_COSTS_BRL.seguroMiscMin)}–${fmtBRL(FIXED_COSTS_BRL.seguroMiscMax)}</span><span class="br-eur">~${fmtEUR(seguroMiscMinEUR)}–${fmtEUR(seguroMiscMaxEUR)}</span></div>
-            </div>
-            <div class="budget-row budget-row-total">
-              <div class="br-label">Total estimado</div>
-              <div class="br-vals"><span class="br-brl">~${fmtBRL(totalMin)}–${fmtBRL(totalMax)}</span><span class="br-eur">~${fmtEUR(totalMinEUR)}–${fmtEUR(totalMaxEUR)}</span></div>
-            </div>
+            ${budgetRowHTML('Passagens Brasil–Itália (pago)', fmtBRL(FIXED_COSTS_BRL.passagens), fmtEUR(passagensEUR), passagensDetailHTML)}
+            ${budgetRowHTML('Hotéis', `${hotelHasUnpriced?'~':''}${fmtBRL(hoteisBRL)}`, `${hotelHasUnpriced?'~':''}${fmtEUR(hotelTotalEUR)}`, hotelDetailHTML)}
+            ${budgetRowHTML('Trens e transfers', fmtBRL(transporteBRL), fmtEUR(cat.transporte), itemDetailHTML(transporteItems))}
+            ${budgetRowHTML('Alimentação', fmtBRL(comidaBRL), fmtEUR(cat.comida), itemDetailHTML(comidaItems))}
+            ${budgetRowHTML('Atrações (inclui Ferrari/test drive)', fmtBRL(atracaoBRL), fmtEUR(cat.atracao), itemDetailHTML(atracaoItems))}
+            ${budgetRowHTML('Seguro / eSIM / misc. (estimado)', fmtBRL(seguroBRL), fmtEUR(seguroEUR), seguroDetailHTML)}
+            ${budgetRowHTML('Total estimado', fmtBRL(totalBRL), fmtEUR(totalEUR), null, 'budget-row-total')}
           </div>
         </div>
       </div>
@@ -263,12 +272,16 @@ function renderSummary(){
       </div>
       <div id="sdayList"></div>
       <div class="foot-note" style="border:1px solid var(--line); border-radius:12px; margin-top:10px; background:var(--paper-raised);">
-        Soma dos dias: ${fmtEUR(totalDaily)} — itens marcados "a confirmar" (Uffizi, Boboli, ferry Amalfi) não entram nessa soma
+        Soma dos dias: ${fmtEUR(totalDaily)} — o item "a definir" (tarde livre em Veneza) não entra nessa soma
       </div>
     </div>
   `;
 
   document.getElementById('exportAllBtn').addEventListener('click', exportAllICS);
+
+  document.querySelectorAll('.budget-row-wrap.expandable').forEach(wrap=>{
+    wrap.addEventListener('click', ()=> wrap.classList.toggle('expanded'));
+  });
 
   // Cria cada card via DOM real e prende o índice por VALOR (não por leitura de atributo depois),
   // evitando qualquer dependência de innerHTML/delegação para o clique funcionar.
