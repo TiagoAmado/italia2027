@@ -1,4 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#A8552E"/>
-  <text x="256" y="300" font-family="Georgia, 'Times New Roman', serif" font-size="220" font-weight="600" fill="#FAF6EF" text-anchor="middle">R</text>
+  <!-- Fundo dark premium com cantos arredondados (padrão app) -->
+  <rect width="512" height="512" rx="112" fill="#141513"/>
+
+  <!-- Anéis concêntricos delicados em verde sálvia -->
+  <circle cx="256" cy="256" r="170" fill="none" stroke="#A1A993" stroke-width="2" opacity="0.8"/>
+  <circle cx="256" cy="256" r="162" fill="none" stroke="#A1A993" stroke-width="1" opacity="0.4"/>
+
+  <!-- Círculo interno tracejado em tom pêssego -->
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#E6B59D" stroke-width="1" stroke-dasharray="4 8" opacity="0.6"/>
+
+  <!-- Coração redimensionado (menor e mais delicado) -->
+  <path d="M 256 130 C 256 130 243 115 223 115 C 198 115 198 145 198 145 C 198 170 256 205 256 205 C 256 205 314 170 314 145 C 314 145 314 115 289 115 C 269 115 256 130 256 130 Z" fill="#E6B59D" opacity="0.85"/>
+
+  <!-- Monograma maior e com mais peso visual -->
+  <text x="256" y="320" font-family="'Didot', 'Bodoni MT', 'Times New Roman', serif" font-size="130" fill="#A1A993" text-anchor="middle" letter-spacing="6">
+    E<tspan fill="#E6B59D" font-size="85" font-style="italic" dy="-12"> &amp; </tspan>T
+  </text>
+
+  <!-- Linha divisória fina -->
+  <path d="M 216 360 L 296 360" stroke="#A1A993" stroke-width="1" opacity="0.5"/>
+
+  <!-- Destino -->
+  <text x="258" y="395" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="400" letter-spacing="14" fill="#A1A993" text-anchor="middle">ITÁLIA</text>
 </svg>

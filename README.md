@@ -4,4 +4,4 @@ Roteiro de lua de mel pela Itália (Roma → Sorrento → Florença → Bologna 
 
 Publicado via GitHub Pages: https://tiagoamado.github.io/italia2027/
 
-Para editar o roteiro (datas, atividades, preços, hotéis), veja o array `DAYS` em [index.html](index.html). Detalhes de arquitetura em [CLAUDE.md](CLAUDE.md).
+Para editar o roteiro (datas, atividades, preços, hotéis), veja o array `DAYS` em [data.js](data.js). Detalhes de arquitetura em [CLAUDE.md](CLAUDE.md).

@@ -10,6 +10,9 @@
   --accent-soft:#A8552E1a;
   --accent-2:#A8552E33;
   --radius: 14px;
+  --status-confirmado:#2A6F63;
+  --status-a-reservar:#B8862E;
+  --status-pendente:#9E2B25;
   color-scheme: light;
 }
 :root[data-theme="dark"]{
@@ -24,6 +27,9 @@
   --accent:#D97B4F;
   --accent-soft:#D97B4F1a;
   --accent-2:#D97B4F33;
+  --status-confirmado:#5FB3A3;
+  --status-a-reservar:#E0AC5C;
+  --status-pendente:#E0857D;
 }
 :root[data-theme="dark"] .item .body .flag{color:#F0C4A8; background:#3A2A20;}
 *{box-sizing:border-box;}
@@ -48,8 +54,23 @@ header.top{
   padding:28px 20px 18px;
   text-align:center;
   border-bottom:1px solid var(--line);
-  background:linear-gradient(180deg, var(--paper) 0%, var(--paper) 100%);
-  position:static;
+  background-color:var(--paper);
+  background-image:var(--hero-image, none);
+  background-size:cover;
+  background-position:center;
+  position:relative;
+}
+header.top::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg, transparent 0%, var(--paper) 92%);
+}
+header.top h1,
+header.top .sub,
+header.top .route{
+  position:relative;
+  z-index:1;
 }
 header.top h1{
   font-family:'Fraunces', serif;
@@ -81,6 +102,7 @@ header.top .route span.dot{color:var(--ink-soft);}
 
 .viewtoggle{
   display:flex;
+  flex-wrap:wrap;
   gap:6px;
   padding:12px 16px 0;
   justify-content:center;
@@ -109,18 +131,14 @@ nav.days{
   display:flex;
   gap:8px;
   overflow-x:auto;
-  padding:14px 16px;
   -webkit-overflow-scrolling:touch;
-  border-bottom:1px solid var(--line);
   background:var(--paper);
-  position:sticky;
-  top:0;
   z-index:4;
   scrollbar-width:thin;
 }
 nav.days::-webkit-scrollbar{height:5px;}
 nav.days::-webkit-scrollbar-thumb{background:var(--line-strong); border-radius:10px;}
-:root[data-mode="summary"] nav.days{display:none;}
+:root[data-mode="summary"] nav.days, :root[data-mode="checklist"] nav.days{display:none;}
 
 .stub{
   flex:0 0 auto;
@@ -178,6 +196,19 @@ nav.days::-webkit-scrollbar-thumb{background:var(--line-strong); border-radius:1
 
 main.day{padding:22px 18px 8px; transition:opacity .18s ease, transform .18s ease;}
 main.day.view-fade{opacity:0; transform:translateY(6px);}
+
+@media (max-width:899.98px){
+  nav.days{
+    padding:10px 16px max(10px, env(safe-area-inset-bottom));
+    border-top:1px solid var(--line);
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    width:100%;
+  }
+  main.day{padding-bottom:96px;}
+}
 
 .pass{
   background:var(--paper-raised);
@@ -241,7 +272,7 @@ main.day.view-fade{opacity:0; transform:translateY(6px);}
 .perf::before{left:-9px;}
 .perf::after{right:-9px;}
 
-.items{padding:6px 0 4px;}
+.items{padding:6px 0 4px; list-style:none; margin:0;}
 .item{
   display:grid;
   grid-template-columns:64px 1fr;
@@ -328,6 +359,9 @@ main.day.view-fade{opacity:0; transform:translateY(6px);}
 .item .body .meta .m{
   display:inline-flex; align-items:center; gap:4px;
 }
+.item .body .meta .m.status-confirmado{color:var(--status-confirmado); font-weight:600;}
+.item .body .meta .m.status-a-reservar{color:var(--status-a-reservar); font-weight:600;}
+.item .body .meta .m.status-pendente{color:var(--status-pendente); font-weight:600;}
 .item .body .meta .price{
   font-family:'IBM Plex Mono', monospace;
   font-weight:600;
@@ -422,6 +456,7 @@ footer.bud tr.total td{font-weight:700; border-bottom:none; padding-top:10px;}
   color:var(--ink-soft);
   text-align:center;
 }
+#sdayList{list-style:none; margin:0; padding:0;}
 .sday{
   display:flex;
   align-items:center;
@@ -460,7 +495,7 @@ footer.bud tr.total td{font-weight:700; border-bottom:none; padding-top:10px;}
 }
 .sday .sd-price small{display:block; font-weight:400; font-size:9.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em;}
 
-.hotel-rows{display:flex; flex-direction:column;}
+.hotel-rows{display:flex; flex-direction:column; list-style:none; margin:0; padding:0;}
 .hotel-row{
   display:flex;
   align-items:flex-start;
@@ -496,7 +531,7 @@ footer.bud tr.total td{font-weight:700; border-bottom:none; padding-top:10px;}
 .hotel-row-total .hr-name{font-weight:700;}
 .hotel-row-total .hr-sub{font-weight:700; font-size:13.5px;}
 
-.budget-rows{display:flex; flex-direction:column;}
+.budget-rows{display:flex; flex-direction:column; list-style:none; margin:0; padding:0;}
 .budget-row-wrap{border-bottom:1px solid var(--line);}
 .budget-row-wrap:last-of-type{border-bottom:none;}
 .budget-row-wrap.expandable{cursor:pointer;}
@@ -550,6 +585,91 @@ footer.bud tr.total td{font-weight:700; border-bottom:none; padding-top:10px;}
 .budget-row-wrap.budget-row-total .br-label{font-weight:700;}
 .budget-row-wrap.budget-row-total .br-brl{font-weight:700; font-size:13.5px;}
 
+.reservation-groups{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:16px;}
+.reservation-group{list-style:none;}
+.reservation-group .rg-title{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  font-weight:600;
+  color:var(--ink-soft);
+  margin-bottom:6px;
+}
+.reservation-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
+.reservation-item{
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:9px 12px;
+  background:var(--paper);
+}
+.reservation-item .ri-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  font-size:11px;
+}
+.reservation-item .ri-when{
+  font-family:'IBM Plex Mono', monospace;
+  color:var(--ink-soft);
+}
+.reservation-item .ri-name{
+  font-size:13.5px;
+  font-weight:600;
+  margin-top:3px;
+}
+.reservation-item .ri-info{
+  font-size:11.5px;
+  color:var(--ink-soft);
+  line-height:1.4;
+  margin-top:4px;
+}
+
+.doc-item{padding:9px 0; border-bottom:1px solid var(--line);}
+.doc-item:last-child{border-bottom:none;}
+.doc-item .doc-title{font-size:13.5px; font-weight:600; margin-bottom:3px;}
+.doc-item .doc-detail{font-size:12.5px; color:var(--ink-soft); line-height:1.45;}
+
+.checklist-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
+.checklist-item{
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--paper);
+  transition:border-color .15s ease, opacity .15s ease;
+}
+.checklist-item.actionable{border-color:var(--accent); background:var(--accent-soft);}
+.checklist-item.done{opacity:.55;}
+.ck-row{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:10px 12px;
+  cursor:pointer;
+}
+.ck-box{margin-top:3px; width:16px; height:16px; flex:0 0 auto; accent-color:var(--accent);}
+.ck-body{flex:1 1 auto; min-width:0;}
+.ck-top{display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:2px;}
+.ck-when{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  color:var(--ink-soft);
+  text-transform:uppercase;
+  letter-spacing:.03em;
+}
+.ck-flag{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10px;
+  font-weight:600;
+  color:var(--accent);
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+}
+.ck-title{font-size:14px; font-weight:600; margin:2px 0 3px;}
+.checklist-item.done .ck-title{text-decoration:line-through;}
+.ck-detail{font-size:12px; color:var(--ink-soft); line-height:1.45;}
+
 @media (min-width:900px){
   .app{
     max-width:1100px;
@@ -581,15 +701,16 @@ footer.bud tr.total td{font-weight:700; border-bottom:none; padding-top:10px;}
   main.day{grid-area:main; padding-top:8px;}
   .legend{grid-area:legend; padding:14px 0 0;}
 
-  /* Em telas largas a coluna da nav fica reservada mesmo no modo Resumo — só some
-     de vista (não de layout), pra não deslocar o card ao trocar de aba. */
-  :root[data-mode="summary"] nav.days{display:flex; visibility:hidden;}
+  /* Em telas largas a coluna da nav fica reservada mesmo no modo Resumo/Checklist —
+     só some de vista (não de layout), pra não deslocar o card ao trocar de aba. */
+  :root[data-mode="summary"] nav.days, :root[data-mode="checklist"] nav.days{display:flex; visibility:hidden;}
 }
 
 @media print{
   body{background:#fff; color:#000;}
   .viewtoggle, nav.days, .icsbtn, .legend, .today-badge, .stub.today::after{display:none !important;}
   header.top{position:static; background:none; border-bottom:1px solid #000;}
+  header.top::before{display:none;}
   .app{max-width:100%;}
   .pass{box-shadow:none; border:1px solid #000; break-inside:avoid; margin-bottom:14px;}
   .pass-head{background:none; border-left-color:#000;}
