@@ -10,7 +10,8 @@ const ICON_SVG = {
   link: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M9 15l6-6"/><path d="M11 6l1-1a4 4 0 1 1 6 6l-1 1"/><path d="M13 18l-1 1a4 4 0 1 1-6-6l1-1"/></svg>',
   check: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12.5l5 5L20 6"/></svg>',
   hourglass: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M6 3h12M6 21h12"/><path d="M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/></svg>',
-  ticket: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z"/><path d="M10 6v12" stroke-dasharray="2 2"/></svg>'
+  ticket: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z"/><path d="M10 6v12" stroke-dasharray="2 2"/></svg>',
+  route: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h3a3 3 0 0 0 3-3V9a3 3 0 0 1 3-3"/></svg>'
 };
 function icon(name){
   return (ICON_SVG[name] || '').replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
@@ -193,68 +194,18 @@ if(window.matchMedia){
   });
 }
 
-function fmtEUR(n){
-  return '€ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-function fmtBRL(n){
-  return 'R$ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-
-// Extrai o menor valor em euros presente numa string de preço (ex.: "€28,00 / €50,00" -> 28).
-// Textos sem número (grátis, a confirmar, incluso) resultam em 0 — o item continua
-// categorizado, só não soma nada ao total.
-function parseEuroMin(str){
-  if(!str) return 0;
-  const matches = [...String(str).matchAll(/€\s?([\d.]+),(\d{2})/g)];
-  if(!matches.length) return 0;
-  const vals = matches.map(m => parseFloat(m[1].replace(/\./g,'')) + parseFloat(m[2])/100);
-  return Math.min(...vals);
-}
-
-// Itens com unidade explícita (por pessoa, por trecho etc.) podem informar o
-// total orçamentário diretamente. O texto em `p` continua sendo o rótulo editorial.
-function itemBudgetEUR(item){
-  return Number.isFinite(item.budgetEUR) ? item.budgetEUR : parseEuroMin(item.p);
-}
-
-function categorySumsEUR(){
-  const sums = {transporte:0, comida:0, atracao:0};
-  DAYS.forEach(day=>{
-    day.items.forEach(it=>{
-      if(!it.cat) return;
-      sums[it.cat] += itemBudgetEUR(it);
-    });
-  });
-  return sums;
-}
-
-function hotelNightsSummary(){
-  const nights = {};
-  const cities = {};
-  DAYS.forEach(day=>{
-    const m = /^Dormindo no (.+?) \((.+?)\)/.exec(day.end || '');
-    if(!m) return;
-    nights[m[1]] = (nights[m[1]] || 0) + 1;
-    cities[m[1]] = m[2];
-  });
-  return HOTELS
-    .map(([name])=>({name, city: cities[name] || null, nights: nights[name] || 0, pricePerNight: HOTEL_PRICES_EUR[name] ?? null}))
-    .filter(h=>h.nights>0);
-}
-
-// Todos os itens de DAYS cujo item.cat bate com catName, com dia+cidade anexados —
-// alimenta tanto a soma (categorySumsEUR) quanto a lista expandida de cada categoria.
-function categoryItems(catName){
-  return DAYS.flatMap(day => day.items.filter(it=>it.cat===catName).map(it=>({d:day.d, cityLabel:day.cityLabel, a:it.a, p:it.p})));
+function fmtReferenceDate(isoDate){
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return new Date(year, month-1, day).toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'});
 }
 
 // Todos os itens de DAYS ainda não confirmados (status "a-reservar" ou "pendente")
 // — alimenta a seção "Pendências de reserva" do resumo geral, que só aparece se
 // houver algum. reserveInfo (quando presente) documenta quando/como reservar.
 function pendingReservations(){
-  return DAYS.flatMap(day => day.items
+  return DAYS.flatMap((day, dayIndex) => day.items
     .filter(it=>it.status==='a-reservar' || it.status==='pendente')
-    .map(it=>({d:day.d, cityLabel:day.cityLabel, a:it.a, cat:it.cat, ci:it.ci, status:it.status, reserveInfo:it.reserveInfo})));
+    .map(it=>({d:day.d, dayIndex, cityLabel:day.cityLabel, a:it.a, cat:it.cat, ci:it.ci, hotelId:it.hotelId, status:it.status, reserveInfo:it.reserveInfo})));
 }
 
 // Hospedagem (ci:true) agrupa por hotel em vez de listar cada check-in/checkout
@@ -276,6 +227,7 @@ function reservationItemHTML(it){
     </div>
     <div class="ri-name">${it.a}</div>
     ${it.reserveInfo ? `<div class="ri-info">${it.reserveInfo}</div>` : ''}
+    <button type="button" class="ri-open" data-day-index="${it.dayIndex}">Abrir dia ${it.d}</button>
   </li>`;
 }
 
@@ -344,8 +296,12 @@ function renderSummary(){
   const pendingByGroup = {hospedagem:[], atracao:[], comida:[], transporte:[]};
   pending.forEach(it=> pendingByGroup[reservationGroupKey(it)].push(it));
 
-  const pendingHotelNames = new Set(pendingByGroup.hospedagem.map(it=>it.a.replace(/^(Check-in|Checkout) — /,'')));
-  const pendingHotelStays = hotelStays.filter(h=>pendingHotelNames.has(h.name));
+  const pendingHotelIds = new Set(pendingByGroup.hospedagem.map(it=>it.hotelId).filter(Boolean));
+  const pendingHotelStays = hotelStays.filter(h=>pendingHotelIds.has(h.id));
+  const nonHotelPending = pending.filter(it=>reservationGroupKey(it)!=='hospedagem');
+  const pendingDisplayCount = nonHotelPending.length + pendingHotelStays.length;
+  const pendingStatusCount = status => nonHotelPending.filter(it=>it.status===status).length
+    + (status==='a-reservar' ? pendingHotelStays.length : 0);
   const hospedagemHTML = pendingHotelStays.map(h=>{
     const st = STATUS_META['a-reservar'];
     return `<li class="reservation-item">
@@ -355,6 +311,7 @@ function renderSummary(){
       </div>
       <div class="ri-name">${h.name}</div>
       <div class="ri-info">Reservar diretamente com o hotel ou por um site como Booking — ${h.pricePerNight!=null ? fmtEUR(h.pricePerNight)+'/noite' : 'preço a confirmar'}.</div>
+      <button type="button" class="ri-open" data-day-index="${h.firstDayIndex}">Abrir primeiro dia da estadia</button>
     </li>`;
   }).join('');
 
@@ -362,9 +319,12 @@ function renderSummary(){
   const reservationGroupsHTML = ['hospedagem','atracao','comida','transporte'].map(key=>{
     const html = key==='hospedagem' ? hospedagemHTML : pendingByGroup[key].map(reservationItemHTML).join('');
     if(!html) return '';
+    const count = key==='hospedagem' ? pendingHotelStays.length : pendingByGroup[key].length;
     return `<li class="reservation-group">
-      <div class="rg-title">${RESERVATION_GROUP_LABELS[key]}</div>
-      <ul class="reservation-list">${html}</ul>
+      <details class="reservation-details">
+        <summary role="button" tabindex="0" aria-expanded="false"><span>${RESERVATION_GROUP_LABELS[key]}</span><span class="rg-count">${count}</span></summary>
+        <ul class="reservation-list">${html}</ul>
+      </details>
     </li>`;
   }).join('');
 
@@ -374,6 +334,11 @@ function renderSummary(){
         <div class="pass-head" style="border-left-color:var(--ink);">
           <div class="eyebrow" style="color:var(--ink);">Orçamento geral</div>
           <h2>Resumo da viagem</h2>
+          <div class="summary-metrics" aria-label="Visão geral da viagem">
+            <div><strong>${DAYS.length}</strong><span>dias</span></div>
+            <div><strong>${hotelStays.length}</strong><span>hotéis</span></div>
+            <div><strong>${pendingDisplayCount}</strong><span>reservas abertas</span></div>
+          </div>
         </div>
         <div class="items" style="padding:10px 16px 6px;">
           <ul class="budget-rows">
@@ -402,7 +367,7 @@ function renderSummary(){
             </li>
           </ul>
         </div>
-        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Preço/noite consultado via Booking para as datas reais de cada estadia — mesmo total usado na linha "Hotéis" do orçamento geral acima</div>
+        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Preço/noite consultado em ${fmtReferenceDate(HOTEL_PRICES_CHECKED_AT)} para as datas reais de cada estadia — mesmo total usado na linha "Hotéis" do orçamento geral acima</div>
       </div>
 
       ${pending.length > 0 ? `
@@ -414,10 +379,13 @@ function renderSummary(){
         <div class="items" style="padding:10px 16px 6px;">
           <ul class="reservation-groups">${reservationGroupsHTML}</ul>
         </div>
-        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">${pending.filter(it=>it.status==='pendente').length} pendente${pending.filter(it=>it.status==='pendente').length===1?'':'s'} · ${pending.filter(it=>it.status==='a-reservar').length} a reservar</div>
+        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">${pendingStatusCount('pendente')} pendente${pendingStatusCount('pendente')===1?'':'s'} · ${pendingStatusCount('a-reservar')} a reservar</div>
       </div>` : ''}
 
       <div class="summary-intro">Toque em um dia pra abrir o detalhe · valores em euros, referentes só às atividades/transporte/comida daquele dia (hospedagem já está no total geral) · Trens/Alimentação/Atrações acima são calculados a partir dos itens do roteiro (câmbio de referência: ${EXCHANGE_RATE.toLocaleString('pt-BR')})</div>
+      <div class="data-freshness">
+        Roteiro atualizado em ${fmtReferenceDate(DATA_LAST_UPDATED)} · câmbio de referência €1 = ${fmtBRL(EXCHANGE_RATE)}, revisto em ${fmtReferenceDate(EXCHANGE_RATE_UPDATED_AT)}
+      </div>
       <div style="text-align:center; padding-bottom:14px;">
         <button type="button" class="icsbtn" id="exportAllBtn">${icon('calendar')} Exportar roteiro completo (.ics)</button>
       </div>
@@ -429,6 +397,23 @@ function renderSummary(){
   `;
 
   document.getElementById('exportAllBtn').addEventListener('click', exportAllICS);
+  document.querySelectorAll('.ri-open').forEach(button=>{
+    button.addEventListener('click', ()=>{
+      goToDay(Number(button.dataset.dayIndex), {historyMode:'push', focus:true});
+      window.scrollTo({top:0, left:0, behavior:'auto'});
+    });
+  });
+  document.querySelectorAll('.reservation-details').forEach(details=>{
+    const summary = details.querySelector('summary');
+    const syncExpanded = ()=>summary.setAttribute('aria-expanded', String(details.open));
+    summary.addEventListener('click', ()=>setTimeout(syncExpanded, 0));
+    summary.addEventListener('keydown', event=>{
+      if(event.key!=='Enter' && event.key!==' ') return;
+      event.preventDefault();
+      details.open = !details.open;
+      syncExpanded();
+    });
+  });
 
   document.querySelectorAll('.budget-row-wrap.expandable').forEach(wrap=>{
     const toggle = ()=>{
@@ -488,6 +473,7 @@ function renderSummary(){
 }
 
 const CHECKLIST_DONE_KEY = 'roteiroItalia.checklistDone';
+let checklistFilter = 'pending';
 function loadChecklistDone(){
   try{ return new Set(JSON.parse(localStorage.getItem(CHECKLIST_DONE_KEY)) || []); }catch(err){ return new Set(); }
 }
@@ -503,6 +489,12 @@ function fmtChecklistDate(it){
   return checklistItemDate(it).toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'});
 }
 
+function checklistMatchesFilter(state){
+  if(checklistFilter==='all') return true;
+  if(checklistFilter==='pending') return state!=='done';
+  return state===checklistFilter;
+}
+
 function renderChecklist(){
   const view = document.getElementById('dayView');
   clearCityColorVars(view);
@@ -514,10 +506,13 @@ function renderChecklist(){
 
   const docsHTML = TRAVEL_DOCS.map(d=>`<div class="doc-item"><div class="doc-title">${d.title}</div><div class="doc-detail">${d.detail}</div></div>`).join('');
 
+  let actionableCount = 0;
   const itemsHTML = CHECKLIST_ITEMS.map(it=>{
     const isDone = done.has(it.id);
     const isActionable = !isDone && checklistItemDate(it) <= today;
-    return `<li class="checklist-item${isDone?' done':''}${isActionable?' actionable':''}">
+    if(isActionable) actionableCount++;
+    const state = isDone ? 'done' : isActionable ? 'actionable' : 'upcoming';
+    return `<li class="checklist-item${isDone?' done':''}${isActionable?' actionable':''}" data-state="${state}"${checklistMatchesFilter(state)?'':' hidden'}>
       <label class="ck-row">
         <input type="checkbox" class="ck-box" data-id="${it.id}"${isDone?' checked':''}>
         <div class="ck-body">
@@ -531,6 +526,8 @@ function renderChecklist(){
       </label>
     </li>`;
   }).join('');
+  const progressPercent = CHECKLIST_ITEMS.length ? Math.round(done.size/CHECKLIST_ITEMS.length*100) : 0;
+  const filterButton = (value, label, count) => `<button type="button" class="check-filter" data-filter="${value}" aria-pressed="${checklistFilter===value}">${label}<span>${count}</span></button>`;
 
   view.innerHTML = `
     <div class="summary-wrap">
@@ -540,15 +537,25 @@ function renderChecklist(){
           <h2>Documentos de viagem</h2>
         </div>
         <div class="items" style="padding:10px 16px 14px;">${docsHTML}</div>
-        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Informação pesquisada em 08/2026 — o ETIAS é o único ponto ainda em aberto, vale reconferir mais perto da viagem.</div>
+        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Informação pesquisada em ${fmtReferenceDate(TRAVEL_DOCS_CHECKED_AT)} — o ETIAS é o único ponto ainda em aberto, vale reconferir mais perto da viagem.</div>
       </div>
 
       <div class="pass" style="margin-bottom:18px;">
         <div class="pass-head" style="border-left-color:var(--ink);">
           <div class="eyebrow" style="color:var(--ink);">Prioridades</div>
           <h2>Checklist</h2>
+          <div class="check-progress">
+            <div class="check-progress-label"><strong>${done.size} de ${CHECKLIST_ITEMS.length}</strong> concluídos</div>
+            <div class="check-progress-track" role="progressbar" aria-label="Progresso do checklist" aria-valuemin="0" aria-valuemax="${CHECKLIST_ITEMS.length}" aria-valuenow="${done.size}"><span style="width:${progressPercent}%"></span></div>
+          </div>
         </div>
         <div class="items" style="padding:10px 16px 14px;">
+          <div class="check-filters" aria-label="Filtrar checklist">
+            ${filterButton('pending', 'Pendentes', CHECKLIST_ITEMS.length-done.size)}
+            ${filterButton('actionable', 'Agir agora', actionableCount)}
+            ${filterButton('done', 'Concluídos', done.size)}
+            ${filterButton('all', 'Todos', CHECKLIST_ITEMS.length)}
+          </div>
           <ul class="checklist-list">${itemsHTML}</ul>
         </div>
       </div>
@@ -561,10 +568,13 @@ function renderChecklist(){
       const d = loadChecklistDone();
       if(box.checked) d.add(id); else d.delete(id);
       saveChecklistDone(d);
-      const item = box.closest('.checklist-item');
-      item.classList.toggle('done', box.checked);
-      const it = CHECKLIST_ITEMS.find(x=>x.id===id);
-      item.classList.toggle('actionable', !box.checked && !!it && checklistItemDate(it) <= today);
+      renderChecklist();
+    });
+  });
+  document.querySelectorAll('.check-filter').forEach(button=>{
+    button.addEventListener('click', ()=>{
+      checklistFilter = button.dataset.filter;
+      renderChecklist();
     });
   });
 }
@@ -593,75 +603,6 @@ function setHeroImage(cityKey){
   const header = document.getElementById('siteHeader');
   const url = CITY_HERO[cityKey] || CITY_HERO.default;
   header.style.setProperty('--hero-image', 'url("'+url+'")');
-}
-
-function mapsUrl(query){
-  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query);
-}
-
-function getMapsLinksFor(item, day){
-  const links = [];
-  const a = item.a || '';
-
-  // Hotel: endereço exato
-  if(a.includes('Check-in') || a.includes('Checkout')){
-    for(const [name, addr] of Object.entries(HOTEL_ADDRESSES)){
-      if(a.includes(name)) links.push({label:name+' no Maps', url: mapsUrl(addr), icon:'pin'});
-    }
-    return links;
-  }
-
-  // Trecho de transporte "A → B": um pino pra cada ponta
-  if(a.includes(' → ')){
-    a.split(' → ').map(s=>s.trim()).forEach(place=>{
-      links.push({label:place, url: mapsUrl(place+', Italy'), icon:'pin'});
-    });
-    return links;
-  }
-
-  // Ponto único: limpa prefixos comuns (Jantar —, Almoço —, etc.) antes de buscar
-  let place = a
-    .replace(/^Jantar( de Páscoa| de despedida)?\s*—?\s*/,'')
-    .replace(/^Almoço\s*—?\s*(em|no)?\s*/,'')
-    .replace(/^Café\/gelato\s*—\s*/,'')
-    .replace(/^Test drive\s*—\s*/,'')
-    .replace(/\s*\([^)]*\)\s*$/,'')
-    .trim();
-
-  if(place && place.toLowerCase() !== day.cityLabel.toLowerCase()){
-    links.push({label:'Ver no Google Maps', url: mapsUrl(place + ', ' + day.cityLabel), icon:'pin'});
-  }
-  return links;
-}
-
-function getLinksFor(item){
-  const links = [];
-  const a = item.a || '';
-  const tr = item.tr || '';
-
-  if(a.includes('Check-in') || a.includes('Checkout')){
-    HOTELS.forEach(([name,url])=>{ if(a.includes(name)) links.push({label:'Ver no Booking.com', url}); });
-  }
-
-  ATTRACTIONS.forEach(([key,url,label])=>{ if(a.includes(key)) links.push({label, url}); });
-
-  if(tr.includes('Frecciarossa') || tr.includes('Leonardo Express') || tr.includes('Trenitalia')){
-    links.push({label:'Comprar passagem · Trenitalia', url:'https://www.trenitalia.com'});
-  }
-  if(tr.includes('Italo')){
-    links.push({label:'Comprar passagem · Italo', url:'https://www.italotreno.it'});
-  }
-  if(tr.includes('EAV') || tr.includes('Circumvesuviana')){
-    links.push({label:'Site oficial · EAV', url:'https://www.eavsrl.it'});
-  }
-  if(tr.includes('SITA')){
-    links.push({label:'Site oficial · SITA Sud', url:'https://www.sitasudtrasporti.it'});
-  }
-  if(tr.includes('Ferry')){
-    links.push({label:'Ferry · Travelmar', url:'https://www.travelmar.it'});
-  }
-
-  return links;
 }
 
 function downloadICS(content, filename){
@@ -758,7 +699,7 @@ function renderDay(){
   view.innerHTML = `
     <div class="pass">
       <div class="pass-head">
-        <div class="eyebrow">${day.d} · ${day.wk}${isToday ? '<span class="today-badge">HOJE</span>' : ''}</div>
+        <div class="eyebrow"><span class="day-sequence">Dia ${active+1} de ${DAYS.length}</span> · ${day.d} · ${day.wk}${isToday ? '<span class="today-badge">HOJE</span>' : ''}</div>
         <h2>${day.title}</h2>
         <div class="hotel-line">
           <span class="tag">${day.hotel ? 'Base':'Status'}</span>
@@ -799,8 +740,9 @@ function renderDay(){
   const itemsList = document.getElementById('itemsList');
   day.items.forEach((it, itemIndex)=>{
     const links = [...getLinksFor(it), ...getMapsLinksFor(it, day)];
+    const isTransit = it.cat==='transporte' || (it.a || '').includes(' → ');
     const row = document.createElement('li');
-    row.className = 'item' + (it.ci ? ' checkinout' : '');
+    row.className = 'item' + (it.ci ? ' checkinout' : '') + (isTransit ? ' transit' : '');
     const mainEl = document.createElement('div');
     mainEl.className = 'item-main';
 
@@ -826,7 +768,7 @@ function renderDay(){
       const s = document.createElement('span'); s.className='m'; s.innerHTML = icon('clock')+' '+it.dur; metaEl.appendChild(s);
     }
     if(it.tr && it.tr!=='—'){
-      const s = document.createElement('span'); s.className='m'; s.textContent = it.tr; metaEl.appendChild(s);
+      const s = document.createElement('span'); s.className='m transport'; s.innerHTML = icon('route')+' '+it.tr; metaEl.appendChild(s);
     }
     if(it.p && it.p!=='—'){
       const s = document.createElement('span'); s.className='price'; s.textContent = it.p; metaEl.appendChild(s);
@@ -872,6 +814,8 @@ function renderDay(){
         links.forEach(l=>{
           const a = document.createElement('a');
           a.href = l.url;
+          a.className = 'external-action';
+          a.dataset.requiresNetwork = 'true';
           a.target = '_blank';
           a.rel = 'noopener noreferrer';
           a.innerHTML = (l.icon ? icon(l.icon)+' ' : '') + '↗ ' + l.label;
@@ -904,9 +848,52 @@ function renderDay(){
   });
 }
 
+let appUpdateReady = false;
+function setAppStatus(message, kind, showReload = false){
+  const status = document.getElementById('appStatus');
+  const text = document.getElementById('appStatusText');
+  const reload = document.getElementById('reloadAppBtn');
+  if(!status || !text || !reload) return;
+  status.hidden = !message;
+  status.dataset.kind = kind || '';
+  text.textContent = message || '';
+  reload.hidden = !showReload;
+}
+
+function updateConnectivityStatus(){
+  const offline = !navigator.onLine;
+  document.documentElement.toggleAttribute('data-offline', offline);
+  if(appUpdateReady) return;
+  if(offline) setAppStatus('Você está offline. O roteiro salvo continua disponível; links externos precisam de internet.', 'offline');
+  else setAppStatus('', '');
+}
+
+document.getElementById('reloadAppBtn').addEventListener('click', ()=>location.reload());
+window.addEventListener('online', updateConnectivityStatus);
+window.addEventListener('offline', updateConnectivityStatus);
+updateConnectivityStatus();
+
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('sw.js').catch(()=>{ /* offline/PWA é um extra — segue sem quebrar o app */ });
+    let isInitialClaim = !navigator.serviceWorker.controller;
+    const showAppUpdate = ()=>{
+      appUpdateReady = true;
+      setAppStatus('Uma versão mais recente do roteiro está pronta.', 'update', true);
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+      if(isInitialClaim){ isInitialClaim = false; return; }
+      showAppUpdate();
+    });
+    navigator.serviceWorker.register('sw.js').then(registration=>{
+      registration.addEventListener('updatefound', ()=>{
+        const worker = registration.installing;
+        if(!worker) return;
+        worker.addEventListener('statechange', ()=>{
+          if(worker.state==='installed' && navigator.serviceWorker.controller) showAppUpdate();
+        });
+      });
+      registration.update().catch(()=>{ /* a checagem automática tentará novamente depois */ });
+    }).catch(()=>{ /* offline/PWA é um extra — segue sem quebrar o app */ });
   });
 }
 
