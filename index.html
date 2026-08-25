@@ -29,6 +29,7 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<a class="skip-link" href="#dayView">Pular para o conteúdo</a>
 <div class="app">
 
   <header class="top" id="siteHeader">
@@ -39,16 +40,17 @@
     </div>
   </header>
 
-  <div class="viewtoggle">
-    <button id="btnByDay" class="active">Por dia</button>
-    <button id="btnSummary">Resumo</button>
-    <button id="btnChecklist">Checklist</button>
-    <button id="themeToggle" title="Alternar tema"></button>
+  <div class="viewtoggle" role="group" aria-label="Visualização do roteiro">
+    <button type="button" id="btnByDay" class="active" aria-pressed="true">Por dia</button>
+    <button type="button" id="btnSummary" aria-pressed="false">Resumo</button>
+    <button type="button" id="btnChecklist" aria-pressed="false">Checklist</button>
+    <button type="button" id="themeToggle" title="Alternar tema"></button>
   </div>
 
-  <nav class="days" id="dayNav"></nav>
+  <nav class="days" id="dayNav" aria-label="Dias da viagem"></nav>
 
-  <main class="day" id="dayView"></main>
+  <main class="day" id="dayView" tabindex="-1"></main>
+  <div class="sr-only" id="viewAnnouncement" aria-live="polite" aria-atomic="true"></div>
 
   <div class="legend">
     <span><i style="background:#A8552E"></i>Roma</span>

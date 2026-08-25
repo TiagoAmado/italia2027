@@ -12,7 +12,20 @@ const ICON_SVG = {
   hourglass: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M6 3h12M6 21h12"/><path d="M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/></svg>',
   ticket: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z"/><path d="M10 6v12" stroke-dasharray="2 2"/></svg>'
 };
-function icon(name){ return ICON_SVG[name] || ''; }
+function icon(name){
+  return (ICON_SVG[name] || '').replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
+}
+
+function setCityColorVars(element, colors){
+  element.style.setProperty('--accent-city-light', colors.c);
+  element.style.setProperty('--accent-city-soft-light', colors.soft);
+  element.style.setProperty('--accent-city-dark', colors.dark || colors.c);
+  element.style.setProperty('--accent-city-soft-dark', colors.darkSoft || colors.soft);
+}
+
+function clearCityColorVars(element){
+  ['--accent-city-light','--accent-city-soft-light','--accent-city-dark','--accent-city-soft-dark'].forEach(name=>element.style.removeProperty(name));
+}
 
 const STATUS_META = {
   confirmado: {icon:'check', label:'Confirmado'},
@@ -39,15 +52,20 @@ let mode = 'byday'; // 'byday' | 'summary' | 'checklist'
 
 const STORAGE_KEY = 'roteiroItalia.state';
 
-function loadState(){
+function loadHashState(){
   const hash = location.hash.replace('#','');
-  if(hash === 'resumo'){ mode = 'summary'; return; }
-  if(hash === 'checklist'){ mode = 'checklist'; return; }
+  if(hash === 'resumo'){ mode = 'summary'; return true; }
+  if(hash === 'checklist'){ mode = 'checklist'; return true; }
   const hm = hash.match(/^dia-(\d+)$/);
   if(hm){
     const idx = parseInt(hm[1],10) - 1;
-    if(idx>=0 && idx<DAYS.length){ active = idx; mode = 'byday'; return; }
+    if(idx>=0 && idx<DAYS.length){ active = idx; mode = 'byday'; return true; }
   }
+  return false;
+}
+
+function loadState(){
+  if(loadHashState()) return;
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     if(raw){
@@ -61,48 +79,75 @@ function loadState(){
   if(todayIdx>=0) active = todayIdx;
 }
 
-function persistState(){
+function routeHash(){
+  return mode==='summary' ? '#resumo' : mode==='checklist' ? '#checklist' : '#dia-'+(active+1);
+}
+
+function persistState(historyMode = 'replace'){
   try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({active, mode})); }catch(err){ /* ignora se indisponível */ }
-  const hash = mode==='summary' ? '#resumo' : mode==='checklist' ? '#checklist' : '#dia-'+(active+1);
-  try{ history.replaceState(null, '', hash); }catch(err){ /* ignora se indisponível */ }
+  if(!historyMode) return;
+  try{ history[historyMode === 'push' ? 'pushState' : 'replaceState'](null, '', routeHash()); }catch(err){ /* ignora se indisponível */ }
 }
 
 // Fade curto no #dayView ao trocar de conteúdo — respeita prefers-reduced-motion
 // porque a regra global (*{transition-duration:0.001ms!important}) já zera isso.
-function transitionView(fn){
+function transitionView(fn, options = {}){
   const view = document.getElementById('dayView');
   view.classList.add('view-fade');
   fn();
   void view.offsetWidth; // força reflow: sem isso o navegador não percebe o estado "fade" antes de tirar a classe
-  requestAnimationFrame(()=>{ view.classList.remove('view-fade'); });
+  requestAnimationFrame(()=>{
+    view.classList.remove('view-fade');
+    if(options.focus) view.focus({preventScroll:true});
+  });
 }
 
-function goToDay(i){
+function announceView(text){
+  const region = document.getElementById('viewAnnouncement');
+  region.textContent = '';
+  requestAnimationFrame(()=>{ region.textContent = text; });
+}
+
+function updateModeControls(){
+  const states = {btnByDay:mode==='byday', btnSummary:mode==='summary', btnChecklist:mode==='checklist'};
+  Object.entries(states).forEach(([id, selected])=>{
+    const button = document.getElementById(id);
+    button.classList.toggle('active', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  });
+  document.documentElement.setAttribute('data-mode', mode);
+}
+
+function goToDay(i, options = {}){
   if(i<0 || i>=DAYS.length) return;
   active = i;
+  mode = 'byday';
+  updateModeControls();
   renderNav();
-  transitionView(renderDay);
-  persistState();
+  transitionView(renderDay, {focus:options.focus !== false});
+  persistState(options.historyMode === undefined ? 'push' : options.historyMode);
+  announceView(DAYS[i].d+' · '+DAYS[i].wk+' — '+DAYS[i].title);
 }
 
-function setMode(m){
+function setMode(m, options = {}){
   mode = m;
-  document.getElementById('btnByDay').classList.toggle('active', m==='byday');
-  document.getElementById('btnSummary').classList.toggle('active', m==='summary');
-  document.getElementById('btnChecklist').classList.toggle('active', m==='checklist');
-  // O CSS decide como esconder a nav por breakpoint (colapsa no mobile,
-  // só fica invisível no desktop pra não deslocar a coluna do conteúdo — ver styles.css).
-  document.documentElement.setAttribute('data-mode', m);
+  updateModeControls();
   transitionView(()=>{
     if(m==='byday'){ renderNav(); renderDay(); }
     else if(m==='checklist'){ renderChecklist(); }
     else { renderSummary(); }
-  });
-  persistState();
+  }, {focus:!!options.focus});
+  persistState(options.historyMode === undefined ? 'push' : options.historyMode);
+  announceView(m==='summary' ? 'Resumo da viagem' : m==='checklist' ? 'Checklist da viagem' : DAYS[active].d+' — '+DAYS[active].title);
 }
-document.getElementById('btnByDay').onclick = ()=>setMode('byday');
-document.getElementById('btnSummary').onclick = ()=>setMode('summary');
-document.getElementById('btnChecklist').onclick = ()=>setMode('checklist');
+document.getElementById('btnByDay').onclick = ()=>setMode('byday', {focus:true});
+document.getElementById('btnSummary').onclick = ()=>setMode('summary', {focus:true});
+document.getElementById('btnChecklist').onclick = ()=>setMode('checklist', {focus:true});
+
+window.addEventListener('popstate', ()=>{
+  if(!loadHashState()) return;
+  setMode(mode, {historyMode:null, focus:true});
+});
 
 const THEME_KEY = 'themeMode';
 const THEME_LABELS = {auto:'AUTO', light:'CLARO', dark:'ESCURO'};
@@ -229,22 +274,24 @@ function bdRow(when, what){
   return `<div class="bd-item"><span class="bd-when">${when}</span><span class="bd-what">${what}</span></div>`;
 }
 
+let budgetRowSequence = 0;
 function budgetRowHTML(label, brlText, eurText, detailHTML, extraClass){
   const expandable = !!detailHTML;
-  return `<li class="budget-row-wrap${expandable?' expandable':''}${extraClass?' '+extraClass:''}"${expandable ? ' role="button" tabindex="0" aria-expanded="false"' : ''}>
+  const detailId = expandable ? 'budget-detail-'+(++budgetRowSequence) : '';
+  return `<li class="budget-row-wrap${expandable?' expandable':''}${extraClass?' '+extraClass:''}"${expandable ? ` role="button" tabindex="0" aria-expanded="false" aria-controls="${detailId}"` : ''}>
     <div class="budget-row">
       <div class="br-label">${label}${expandable ? ' <span class="chev">▸</span>' : ''}</div>
       <div class="br-vals"><span class="br-brl">${brlText}</span><span class="br-eur">${eurText}</span></div>
     </div>
-    ${expandable ? `<div class="budget-row-detail">${detailHTML}</div>` : ''}
+    ${expandable ? `<div class="budget-row-detail" id="${detailId}">${detailHTML}</div>` : ''}
   </li>`;
 }
 
 function renderSummary(){
+  budgetRowSequence = 0;
   const view = document.getElementById('dayView');
   const totalDaily = DAYS.reduce((s,d)=>s+d.budget,0);
-  view.style.removeProperty('--accent-city');
-  view.style.removeProperty('--accent-city-soft');
+  clearCityColorVars(view);
   setHeroImage('default');
 
   const hotelStays = hotelNightsSummary();
@@ -392,8 +439,7 @@ function renderSummary(){
     card.className = 'sday';
     card.tabIndex = 0;
     card.setAttribute('role', 'button');
-    card.style.setProperty('--accent-city', col.c);
-    card.style.setProperty('--accent-city-soft', col.soft);
+    setCityColorVars(card, col);
 
     const dateEl = document.createElement('div');
     dateEl.className = 'sd-date';
@@ -422,7 +468,7 @@ function renderSummary(){
     card.appendChild(priceEl);
 
     // dayIndex é capturado por valor nesta própria iteração do forEach — não muda depois.
-    const open = function(){ active = dayIndex; setMode('byday'); window.scrollTo({top:0, left:0, behavior:'auto'}); };
+    const open = function(){ goToDay(dayIndex, {historyMode:'push', focus:true}); window.scrollTo({top:0, left:0, behavior:'auto'}); };
     card.addEventListener('click', open);
     card.addEventListener('keydown', function(e){
       if(e.key==='Enter' || e.key===' '){ e.preventDefault(); open(); }
@@ -450,8 +496,7 @@ function fmtChecklistDate(it){
 
 function renderChecklist(){
   const view = document.getElementById('dayView');
-  view.style.removeProperty('--accent-city');
-  view.style.removeProperty('--accent-city-soft');
+  clearCityColorVars(view);
   setHeroImage('default');
 
   const done = loadChecklistDone();
@@ -523,9 +568,9 @@ function renderNav(){
     const col = CITY_COLORS[day.city];
     const btn = document.createElement('button');
     btn.className = 'stub' + (i===active ? ' active':'') + (i===todayIdx ? ' today':'');
-    btn.style.setProperty('--accent-city', col.c);
-    btn.style.setProperty('--accent-city-soft', col.soft);
+    setCityColorVars(btn, col);
     btn.setAttribute('aria-label', day.d+' '+day.wk+' '+day.title + (i===todayIdx ? ' (hoje)':''));
+    if(i===active) btn.setAttribute('aria-current', 'page');
     btn.innerHTML = `<div class="dnum">${day.d.split('/')[0]}</div><div class="dwk">${day.wk.slice(0,3)}</div><div class="cdot"></div>`;
     btn.onclick = ()=>goToDay(i);
     nav.appendChild(btn);
@@ -694,8 +739,7 @@ function renderDay(){
   const day = DAYS[active];
   const col = CITY_COLORS[day.city];
   const view = document.getElementById('dayView');
-  view.style.setProperty('--accent-city', col.c);
-  view.style.setProperty('--accent-city-soft', col.soft);
+  setCityColorVars(view, col);
   setHeroImage(day.city);
 
   const isToday = findTodayIndex() === active;
@@ -736,6 +780,8 @@ function renderDay(){
     const links = [...getLinksFor(it), ...getMapsLinksFor(it, day)];
     const row = document.createElement('li');
     row.className = 'item' + (it.ci ? ' checkinout' : '');
+    const mainEl = document.createElement('div');
+    mainEl.className = 'item-main';
 
     const timeEl = document.createElement('div');
     timeEl.className = 'time';
@@ -814,24 +860,25 @@ function renderDay(){
         expandEl.appendChild(linksEl);
       }
 
-      bodyEl.appendChild(expandEl);
+      row.appendChild(expandEl);
 
-      row.tabIndex = 0;
-      row.setAttribute('role', 'button');
-      row.setAttribute('aria-expanded', 'false');
-      row.setAttribute('aria-controls', expandId);
+      mainEl.tabIndex = 0;
+      mainEl.setAttribute('role', 'button');
+      mainEl.setAttribute('aria-expanded', 'false');
+      mainEl.setAttribute('aria-controls', expandId);
       const toggle = ()=>{
         const expanded = row.classList.toggle('expanded');
-        row.setAttribute('aria-expanded', String(expanded));
+        mainEl.setAttribute('aria-expanded', String(expanded));
       };
-      row.addEventListener('click', toggle);
-      row.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); } });
+      mainEl.addEventListener('click', toggle);
+      mainEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggle(); } });
     } else {
-      row.style.cursor = 'default';
+      mainEl.style.cursor = 'default';
     }
 
-    row.appendChild(timeEl);
-    row.appendChild(bodyEl);
+    mainEl.appendChild(timeEl);
+    mainEl.appendChild(bodyEl);
+    row.insertBefore(mainEl, row.firstChild);
     itemsList.appendChild(row);
   });
 }
@@ -843,5 +890,5 @@ if('serviceWorker' in navigator){
 }
 
 loadState();
-setMode(mode);
+setMode(mode, {historyMode:'replace', focus:false});
 initSwipe();

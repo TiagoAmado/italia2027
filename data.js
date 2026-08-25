@@ -23,13 +23,13 @@ const INSURANCE_MISC_ITEMS_BRL = [
 ];
 
 const CITY_COLORS = {
-  voo:    {c:"#6B5F52", soft:"#6B5F521a"},
-  roma:   {c:"#A8552E", soft:"#A8552E1a"},
-  sorrento:{c:"#2A6F63", soft:"#2A6F631a"},
-  firenze:{c:"#B8862E", soft:"#B8862E1a"},
-  bologna:{c:"#9E2B25", soft:"#9E2B251a"},
-  ferrari:{c:"#C8102E", soft:"#C8102E1a"},
-  venezia:{c:"#1D5C64", soft:"#1D5C641a"}
+  voo:     {c:"#6B5F52", soft:"#6B5F521a", dark:"#B8ADA0", darkSoft:"#B8ADA01f"},
+  roma:    {c:"#A8552E", soft:"#A8552E1a", dark:"#E49A73", darkSoft:"#E49A731f"},
+  sorrento:{c:"#2A6F63", soft:"#2A6F631a", dark:"#65B8A9", darkSoft:"#65B8A91f"},
+  firenze: {c:"#8A641F", soft:"#8A641F1a", dark:"#E0AC5C", darkSoft:"#E0AC5C1f"},
+  bologna: {c:"#9E2B25", soft:"#9E2B251a", dark:"#E0857D", darkSoft:"#E0857D1f"},
+  ferrari: {c:"#C8102E", soft:"#C8102E1a", dark:"#F06A7D", darkSoft:"#F06A7D1f"},
+  venezia: {c:"#1D5C64", soft:"#1D5C641a", dark:"#65B4BD", darkSoft:"#65B4BD1f"}
 };
 
 // Fotos de fundo do header, por cidade — hospedadas no Unsplash (cross-origin,
