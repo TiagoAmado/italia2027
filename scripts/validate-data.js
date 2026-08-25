@@ -3,26 +3,17 @@ const path = require('path');
 const vm = require('vm');
 
 const root = path.resolve(__dirname, '..');
-const source = fs.readFileSync(path.join(root, 'data.js'), 'utf8') +
-  '\n;globalThis.__tripData = { DAYS, CITY_COLORS, HOTEL_CATALOG, CHECKLIST_ITEMS };';
+const source = fs.readFileSync(path.join(root, 'data.js'), 'utf8') + '\n' +
+  fs.readFileSync(path.join(root, 'budget.js'), 'utf8') +
+  '\n;globalThis.__tripData = { DAYS, CITY_COLORS, HOTEL_CATALOG, CHECKLIST_ITEMS, itemBudgetEUR };';
 const context = {};
 vm.createContext(context);
 vm.runInContext(source, context, {filename:'data.js'});
 
-const {DAYS, CITY_COLORS, HOTEL_CATALOG, CHECKLIST_ITEMS} = context.__tripData;
+const {DAYS, CITY_COLORS, HOTEL_CATALOG, CHECKLIST_ITEMS, itemBudgetEUR} = context.__tripData;
 const errors = [];
 const validCategories = new Set(['transporte', 'comida', 'atracao']);
 const validStatuses = new Set(['confirmado', 'a-reservar', 'pendente']);
-
-function parseEuroMin(value){
-  const matches = [...String(value || '').matchAll(/€\s?([\d.]+),(\d{2})/g)];
-  if(!matches.length) return 0;
-  return Math.min(...matches.map(m => Number(m[1].replace(/\./g, '')) + Number(m[2]) / 100));
-}
-
-function itemBudgetEUR(item){
-  return Number.isFinite(item.budgetEUR) ? item.budgetEUR : parseEuroMin(item.p);
-}
 
 function minutes(value){
   const match = String(value || '').replace(/~/g, '').match(/^(\d{1,2}):(\d{2})$/);

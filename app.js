@@ -194,63 +194,9 @@ if(window.matchMedia){
   });
 }
 
-function fmtEUR(n){
-  return '€ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-function fmtBRL(n){
-  return 'R$ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-}
-
 function fmtReferenceDate(isoDate){
   const [year, month, day] = isoDate.split('-').map(Number);
   return new Date(year, month-1, day).toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'});
-}
-
-// Extrai o menor valor em euros presente numa string de preço (ex.: "€28,00 / €50,00" -> 28).
-// Textos sem número (grátis, a confirmar, incluso) resultam em 0 — o item continua
-// categorizado, só não soma nada ao total.
-function parseEuroMin(str){
-  if(!str) return 0;
-  const matches = [...String(str).matchAll(/€\s?([\d.]+),(\d{2})/g)];
-  if(!matches.length) return 0;
-  const vals = matches.map(m => parseFloat(m[1].replace(/\./g,'')) + parseFloat(m[2])/100);
-  return Math.min(...vals);
-}
-
-// Itens com unidade explícita (por pessoa, por trecho etc.) podem informar o
-// total orçamentário diretamente. O texto em `p` continua sendo o rótulo editorial.
-function itemBudgetEUR(item){
-  return Number.isFinite(item.budgetEUR) ? item.budgetEUR : parseEuroMin(item.p);
-}
-
-function categorySumsEUR(){
-  const sums = {transporte:0, comida:0, atracao:0};
-  DAYS.forEach(day=>{
-    day.items.forEach(it=>{
-      if(!it.cat) return;
-      sums[it.cat] += itemBudgetEUR(it);
-    });
-  });
-  return sums;
-}
-
-function hotelNightsSummary(){
-  const nights = {};
-  const firstDayIndex = {};
-  DAYS.forEach((day, dayIndex)=>{
-    if(!day.overnightHotelId) return;
-    nights[day.overnightHotelId] = (nights[day.overnightHotelId] || 0) + 1;
-    if(firstDayIndex[day.overnightHotelId] == null) firstDayIndex[day.overnightHotelId] = dayIndex;
-  });
-  return Object.entries(HOTEL_CATALOG)
-    .map(([id, hotel])=>({id, name:hotel.name, city:hotel.city, nights:nights[id] || 0, pricePerNight:hotel.priceEUR ?? null, firstDayIndex:firstDayIndex[id]}))
-    .filter(h=>h.nights>0);
-}
-
-// Todos os itens de DAYS cujo item.cat bate com catName, com dia+cidade anexados —
-// alimenta tanto a soma (categorySumsEUR) quanto a lista expandida de cada categoria.
-function categoryItems(catName){
-  return DAYS.flatMap(day => day.items.filter(it=>it.cat===catName).map(it=>({d:day.d, cityLabel:day.cityLabel, a:it.a, p:it.p})));
 }
 
 // Todos os itens de DAYS ainda não confirmados (status "a-reservar" ou "pendente")
@@ -646,82 +592,6 @@ function setHeroImage(cityKey){
   const header = document.getElementById('siteHeader');
   const url = CITY_HERO[cityKey] || CITY_HERO.default;
   header.style.setProperty('--hero-image', 'url("'+url+'")');
-}
-
-function mapsUrl(query){
-  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query);
-}
-
-function getMapsLinksFor(item, day){
-  const links = [];
-  const a = item.a || '';
-
-  // Hotel: endereço exato
-  if(item.hotelId && HOTEL_CATALOG[item.hotelId]){
-    const hotel = HOTEL_CATALOG[item.hotelId];
-    links.push({label:hotel.name+' no Maps', url:mapsUrl(hotel.address), icon:'pin'});
-    return links;
-  }
-  if(a.includes('Check-in') || a.includes('Checkout')){
-    for(const [name, addr] of Object.entries(HOTEL_ADDRESSES)){
-      if(a.includes(name)) links.push({label:name+' no Maps', url: mapsUrl(addr), icon:'pin'});
-    }
-    return links;
-  }
-
-  // Trecho de transporte "A → B": um pino pra cada ponta
-  if(a.includes(' → ')){
-    a.split(' → ').map(s=>s.trim()).forEach(place=>{
-      links.push({label:place, url: mapsUrl(place+', Italy'), icon:'pin'});
-    });
-    return links;
-  }
-
-  // Ponto único: limpa prefixos comuns (Jantar —, Almoço —, etc.) antes de buscar
-  let place = a
-    .replace(/^Jantar( de Páscoa| de despedida)?\s*—?\s*/,'')
-    .replace(/^Almoço\s*—?\s*(em|no)?\s*/,'')
-    .replace(/^Café\/gelato\s*—\s*/,'')
-    .replace(/^Test drive\s*—\s*/,'')
-    .replace(/\s*\([^)]*\)\s*$/,'')
-    .trim();
-
-  if(place && place.toLowerCase() !== day.cityLabel.toLowerCase()){
-    links.push({label:'Ver no Google Maps', url: mapsUrl(place + ', ' + day.cityLabel), icon:'pin'});
-  }
-  return links;
-}
-
-function getLinksFor(item){
-  const links = [];
-  const a = item.a || '';
-  const tr = item.tr || '';
-
-  if(item.hotelId && HOTEL_CATALOG[item.hotelId]){
-    links.push({label:'Ver no Booking.com', url:HOTEL_CATALOG[item.hotelId].bookingUrl});
-  }else if(a.includes('Check-in') || a.includes('Checkout')){
-    HOTELS.forEach(([name,url])=>{ if(a.includes(name)) links.push({label:'Ver no Booking.com', url}); });
-  }
-
-  ATTRACTIONS.forEach(([key,url,label])=>{ if(a.includes(key)) links.push({label, url}); });
-
-  if(tr.includes('Frecciarossa') || tr.includes('Leonardo Express') || tr.includes('Trenitalia')){
-    links.push({label:'Comprar passagem · Trenitalia', url:'https://www.trenitalia.com'});
-  }
-  if(tr.includes('Italo')){
-    links.push({label:'Comprar passagem · Italo', url:'https://www.italotreno.it'});
-  }
-  if(tr.includes('EAV') || tr.includes('Circumvesuviana')){
-    links.push({label:'Site oficial · EAV', url:'https://www.eavsrl.it'});
-  }
-  if(tr.includes('SITA')){
-    links.push({label:'Site oficial · SITA Sud', url:'https://www.sitasudtrasporti.it'});
-  }
-  if(tr.includes('Ferry')){
-    links.push({label:'Ferry · Travelmar', url:'https://www.travelmar.it'});
-  }
-
-  return links;
 }
 
 function downloadICS(content, filename){
