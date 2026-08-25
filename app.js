@@ -200,6 +200,11 @@ function fmtBRL(n){
   return 'R$ ' + n.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
+function fmtReferenceDate(isoDate){
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return new Date(year, month-1, day).toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'});
+}
+
 // Extrai o menor valor em euros presente numa string de preço (ex.: "€28,00 / €50,00" -> 28).
 // Textos sem número (grátis, a confirmar, incluso) resultam em 0 — o item continua
 // categorizado, só não soma nada ao total.
@@ -275,6 +280,7 @@ function reservationItemHTML(it){
     </div>
     <div class="ri-name">${it.a}</div>
     ${it.reserveInfo ? `<div class="ri-info">${it.reserveInfo}</div>` : ''}
+    <button type="button" class="ri-open" data-day-index="${it.dayIndex}">Abrir dia ${it.d}</button>
   </li>`;
 }
 
@@ -345,6 +351,10 @@ function renderSummary(){
 
   const pendingHotelIds = new Set(pendingByGroup.hospedagem.map(it=>it.hotelId).filter(Boolean));
   const pendingHotelStays = hotelStays.filter(h=>pendingHotelIds.has(h.id));
+  const nonHotelPending = pending.filter(it=>reservationGroupKey(it)!=='hospedagem');
+  const pendingDisplayCount = nonHotelPending.length + pendingHotelStays.length;
+  const pendingStatusCount = status => nonHotelPending.filter(it=>it.status===status).length
+    + (status==='a-reservar' ? pendingHotelStays.length : 0);
   const hospedagemHTML = pendingHotelStays.map(h=>{
     const st = STATUS_META['a-reservar'];
     return `<li class="reservation-item">
@@ -354,6 +364,7 @@ function renderSummary(){
       </div>
       <div class="ri-name">${h.name}</div>
       <div class="ri-info">Reservar diretamente com o hotel ou por um site como Booking — ${h.pricePerNight!=null ? fmtEUR(h.pricePerNight)+'/noite' : 'preço a confirmar'}.</div>
+      <button type="button" class="ri-open" data-day-index="${h.firstDayIndex}">Abrir primeiro dia da estadia</button>
     </li>`;
   }).join('');
 
@@ -361,9 +372,12 @@ function renderSummary(){
   const reservationGroupsHTML = ['hospedagem','atracao','comida','transporte'].map(key=>{
     const html = key==='hospedagem' ? hospedagemHTML : pendingByGroup[key].map(reservationItemHTML).join('');
     if(!html) return '';
+    const count = key==='hospedagem' ? pendingHotelStays.length : pendingByGroup[key].length;
     return `<li class="reservation-group">
-      <div class="rg-title">${RESERVATION_GROUP_LABELS[key]}</div>
-      <ul class="reservation-list">${html}</ul>
+      <details class="reservation-details">
+        <summary><span>${RESERVATION_GROUP_LABELS[key]}</span><span class="rg-count">${count}</span></summary>
+        <ul class="reservation-list">${html}</ul>
+      </details>
     </li>`;
   }).join('');
 
@@ -373,6 +387,11 @@ function renderSummary(){
         <div class="pass-head" style="border-left-color:var(--ink);">
           <div class="eyebrow" style="color:var(--ink);">Orçamento geral</div>
           <h2>Resumo da viagem</h2>
+          <div class="summary-metrics" aria-label="Visão geral da viagem">
+            <div><strong>${DAYS.length}</strong><span>dias</span></div>
+            <div><strong>${hotelStays.length}</strong><span>hotéis</span></div>
+            <div><strong>${pendingDisplayCount}</strong><span>reservas abertas</span></div>
+          </div>
         </div>
         <div class="items" style="padding:10px 16px 6px;">
           <ul class="budget-rows">
@@ -401,7 +420,7 @@ function renderSummary(){
             </li>
           </ul>
         </div>
-        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Preço/noite consultado via Booking para as datas reais de cada estadia — mesmo total usado na linha "Hotéis" do orçamento geral acima</div>
+        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Preço/noite consultado em ${fmtReferenceDate(HOTEL_PRICES_CHECKED_AT)} para as datas reais de cada estadia — mesmo total usado na linha "Hotéis" do orçamento geral acima</div>
       </div>
 
       ${pending.length > 0 ? `
@@ -413,10 +432,13 @@ function renderSummary(){
         <div class="items" style="padding:10px 16px 6px;">
           <ul class="reservation-groups">${reservationGroupsHTML}</ul>
         </div>
-        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">${pending.filter(it=>it.status==='pendente').length} pendente${pending.filter(it=>it.status==='pendente').length===1?'':'s'} · ${pending.filter(it=>it.status==='a-reservar').length} a reservar</div>
+        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">${pendingStatusCount('pendente')} pendente${pendingStatusCount('pendente')===1?'':'s'} · ${pendingStatusCount('a-reservar')} a reservar</div>
       </div>` : ''}
 
       <div class="summary-intro">Toque em um dia pra abrir o detalhe · valores em euros, referentes só às atividades/transporte/comida daquele dia (hospedagem já está no total geral) · Trens/Alimentação/Atrações acima são calculados a partir dos itens do roteiro (câmbio de referência: ${EXCHANGE_RATE.toLocaleString('pt-BR')})</div>
+      <div class="data-freshness">
+        Roteiro atualizado em ${fmtReferenceDate(DATA_LAST_UPDATED)} · câmbio de referência €1 = ${fmtBRL(EXCHANGE_RATE)}, revisto em ${fmtReferenceDate(EXCHANGE_RATE_UPDATED_AT)}
+      </div>
       <div style="text-align:center; padding-bottom:14px;">
         <button type="button" class="icsbtn" id="exportAllBtn">${icon('calendar')} Exportar roteiro completo (.ics)</button>
       </div>
@@ -428,6 +450,12 @@ function renderSummary(){
   `;
 
   document.getElementById('exportAllBtn').addEventListener('click', exportAllICS);
+  document.querySelectorAll('.ri-open').forEach(button=>{
+    button.addEventListener('click', ()=>{
+      goToDay(Number(button.dataset.dayIndex), {historyMode:'push', focus:true});
+      window.scrollTo({top:0, left:0, behavior:'auto'});
+    });
+  });
 
   document.querySelectorAll('.budget-row-wrap.expandable').forEach(wrap=>{
     const toggle = ()=>{
@@ -487,6 +515,7 @@ function renderSummary(){
 }
 
 const CHECKLIST_DONE_KEY = 'roteiroItalia.checklistDone';
+let checklistFilter = 'pending';
 function loadChecklistDone(){
   try{ return new Set(JSON.parse(localStorage.getItem(CHECKLIST_DONE_KEY)) || []); }catch(err){ return new Set(); }
 }
@@ -502,6 +531,12 @@ function fmtChecklistDate(it){
   return checklistItemDate(it).toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'});
 }
 
+function checklistMatchesFilter(state){
+  if(checklistFilter==='all') return true;
+  if(checklistFilter==='pending') return state!=='done';
+  return state===checklistFilter;
+}
+
 function renderChecklist(){
   const view = document.getElementById('dayView');
   clearCityColorVars(view);
@@ -513,10 +548,13 @@ function renderChecklist(){
 
   const docsHTML = TRAVEL_DOCS.map(d=>`<div class="doc-item"><div class="doc-title">${d.title}</div><div class="doc-detail">${d.detail}</div></div>`).join('');
 
+  let actionableCount = 0;
   const itemsHTML = CHECKLIST_ITEMS.map(it=>{
     const isDone = done.has(it.id);
     const isActionable = !isDone && checklistItemDate(it) <= today;
-    return `<li class="checklist-item${isDone?' done':''}${isActionable?' actionable':''}">
+    if(isActionable) actionableCount++;
+    const state = isDone ? 'done' : isActionable ? 'actionable' : 'upcoming';
+    return `<li class="checklist-item${isDone?' done':''}${isActionable?' actionable':''}" data-state="${state}"${checklistMatchesFilter(state)?'':' hidden'}>
       <label class="ck-row">
         <input type="checkbox" class="ck-box" data-id="${it.id}"${isDone?' checked':''}>
         <div class="ck-body">
@@ -530,6 +568,8 @@ function renderChecklist(){
       </label>
     </li>`;
   }).join('');
+  const progressPercent = CHECKLIST_ITEMS.length ? Math.round(done.size/CHECKLIST_ITEMS.length*100) : 0;
+  const filterButton = (value, label, count) => `<button type="button" class="check-filter" data-filter="${value}" aria-pressed="${checklistFilter===value}">${label}<span>${count}</span></button>`;
 
   view.innerHTML = `
     <div class="summary-wrap">
@@ -539,15 +579,25 @@ function renderChecklist(){
           <h2>Documentos de viagem</h2>
         </div>
         <div class="items" style="padding:10px 16px 14px;">${docsHTML}</div>
-        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Informação pesquisada em 08/2026 — o ETIAS é o único ponto ainda em aberto, vale reconferir mais perto da viagem.</div>
+        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Informação pesquisada em ${fmtReferenceDate(TRAVEL_DOCS_CHECKED_AT)} — o ETIAS é o único ponto ainda em aberto, vale reconferir mais perto da viagem.</div>
       </div>
 
       <div class="pass" style="margin-bottom:18px;">
         <div class="pass-head" style="border-left-color:var(--ink);">
           <div class="eyebrow" style="color:var(--ink);">Prioridades</div>
           <h2>Checklist</h2>
+          <div class="check-progress">
+            <div class="check-progress-label"><strong>${done.size} de ${CHECKLIST_ITEMS.length}</strong> concluídos</div>
+            <div class="check-progress-track" role="progressbar" aria-label="Progresso do checklist" aria-valuemin="0" aria-valuemax="${CHECKLIST_ITEMS.length}" aria-valuenow="${done.size}"><span style="width:${progressPercent}%"></span></div>
+          </div>
         </div>
         <div class="items" style="padding:10px 16px 14px;">
+          <div class="check-filters" aria-label="Filtrar checklist">
+            ${filterButton('pending', 'Pendentes', CHECKLIST_ITEMS.length-done.size)}
+            ${filterButton('actionable', 'Agir agora', actionableCount)}
+            ${filterButton('done', 'Concluídos', done.size)}
+            ${filterButton('all', 'Todos', CHECKLIST_ITEMS.length)}
+          </div>
           <ul class="checklist-list">${itemsHTML}</ul>
         </div>
       </div>
@@ -560,10 +610,13 @@ function renderChecklist(){
       const d = loadChecklistDone();
       if(box.checked) d.add(id); else d.delete(id);
       saveChecklistDone(d);
-      const item = box.closest('.checklist-item');
-      item.classList.toggle('done', box.checked);
-      const it = CHECKLIST_ITEMS.find(x=>x.id===id);
-      item.classList.toggle('actionable', !box.checked && !!it && checklistItemDate(it) <= today);
+      renderChecklist();
+    });
+  });
+  document.querySelectorAll('.check-filter').forEach(button=>{
+    button.addEventListener('click', ()=>{
+      checklistFilter = button.dataset.filter;
+      renderChecklist();
     });
   });
 }
