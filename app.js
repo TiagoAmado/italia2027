@@ -157,12 +157,18 @@ function parseEuroMin(str){
   return Math.min(...vals);
 }
 
+// Itens com unidade explícita (por pessoa, por trecho etc.) podem informar o
+// total orçamentário diretamente. O texto em `p` continua sendo o rótulo editorial.
+function itemBudgetEUR(item){
+  return Number.isFinite(item.budgetEUR) ? item.budgetEUR : parseEuroMin(item.p);
+}
+
 function categorySumsEUR(){
   const sums = {transporte:0, comida:0, atracao:0};
   DAYS.forEach(day=>{
     day.items.forEach(it=>{
       if(!it.cat) return;
-      sums[it.cat] += parseEuroMin(it.p);
+      sums[it.cat] += itemBudgetEUR(it);
     });
   });
   return sums;
