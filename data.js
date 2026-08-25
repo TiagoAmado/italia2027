@@ -96,7 +96,7 @@ const ATTRACTIONS = [
 ];
 
 const DAYS = [
-{d:"22/3", wk:"Segunda", city:"voo", cityLabel:"Embarque", title:"Embarque", hotel:null, hotelNote:"Em voo (sem hospedagem)", budget:0,
+{d:"22/3", wk:"Segunda", city:"voo", cityLabel:"Embarque", title:"Embarque", hotel:null, hotelNote:"Em voo (sem hospedagem)", timeZone:"America/Sao_Paulo", budget:0,
  items:[
   {t:"20:40", a:"Voo GRU → FCO", dur:"—", tr:"ITA Airways AZ 679", p:"—", status:"confirmado", desc:"Voo noturno direto GRU→FCO — durmam o quanto der, a gente desembarca de manhã e já emenda direto com Roma no mesmo dia."}
  ], end:"Em voo, rumo a Roma"},
