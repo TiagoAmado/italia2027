@@ -322,7 +322,7 @@ function renderSummary(){
     const count = key==='hospedagem' ? pendingHotelStays.length : pendingByGroup[key].length;
     return `<li class="reservation-group">
       <details class="reservation-details">
-        <summary><span>${RESERVATION_GROUP_LABELS[key]}</span><span class="rg-count">${count}</span></summary>
+        <summary role="button" tabindex="0" aria-expanded="false"><span>${RESERVATION_GROUP_LABELS[key]}</span><span class="rg-count">${count}</span></summary>
         <ul class="reservation-list">${html}</ul>
       </details>
     </li>`;
@@ -401,6 +401,17 @@ function renderSummary(){
     button.addEventListener('click', ()=>{
       goToDay(Number(button.dataset.dayIndex), {historyMode:'push', focus:true});
       window.scrollTo({top:0, left:0, behavior:'auto'});
+    });
+  });
+  document.querySelectorAll('.reservation-details').forEach(details=>{
+    const summary = details.querySelector('summary');
+    const syncExpanded = ()=>summary.setAttribute('aria-expanded', String(details.open));
+    summary.addEventListener('click', ()=>setTimeout(syncExpanded, 0));
+    summary.addEventListener('keydown', event=>{
+      if(event.key!=='Enter' && event.key!==' ') return;
+      event.preventDefault();
+      details.open = !details.open;
+      syncExpanded();
     });
   });
 
