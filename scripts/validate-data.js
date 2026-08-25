@@ -4,12 +4,12 @@ const vm = require('vm');
 
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'data.js'), 'utf8') +
-  '\n;globalThis.__tripData = { DAYS, CITY_COLORS, HOTELS, HOTEL_ADDRESSES, HOTEL_PRICES_EUR, CHECKLIST_ITEMS };';
+  '\n;globalThis.__tripData = { DAYS, CITY_COLORS, HOTEL_CATALOG, CHECKLIST_ITEMS };';
 const context = {};
 vm.createContext(context);
 vm.runInContext(source, context, {filename:'data.js'});
 
-const {DAYS, CITY_COLORS, HOTELS, HOTEL_ADDRESSES, HOTEL_PRICES_EUR, CHECKLIST_ITEMS} = context.__tripData;
+const {DAYS, CITY_COLORS, HOTEL_CATALOG, CHECKLIST_ITEMS} = context.__tripData;
 const errors = [];
 const validCategories = new Set(['transporte', 'comida', 'atracao']);
 const validStatuses = new Set(['confirmado', 'a-reservar', 'pendente']);
@@ -48,12 +48,14 @@ DAYS.forEach(day => {
   if(dates.has(day.d)) errors.push(`Dia duplicado: ${day.d}`);
   dates.add(day.d);
   if(!CITY_COLORS[day.city]) errors.push(`${day.d}: cidade sem cor (${day.city})`);
+  if(day.overnightHotelId && !HOTEL_CATALOG[day.overnightHotelId]) errors.push(`${day.d}: hotel de pernoite inválido`);
 
   let calculatedBudget = 0;
   const scheduled = [];
   day.items.forEach((item, index) => {
     if(item.cat && !validCategories.has(item.cat)) errors.push(`${day.d} item ${index + 1}: categoria inválida`);
     if(item.status && !validStatuses.has(item.status)) errors.push(`${day.d} item ${index + 1}: status inválido`);
+    if(item.ci && !HOTEL_CATALOG[item.hotelId]) errors.push(`${day.d} ${item.a}: check-in/checkout sem hotelId válido`);
     if(String(item.p || '').includes('/pessoa') && !Number.isFinite(item.budgetEUR)){
       errors.push(`${day.d} ${item.a}: preço por pessoa sem budgetEUR total`);
     }
@@ -83,9 +85,11 @@ CHECKLIST_ITEMS.forEach(item => {
   lastChecklistDate = item.date;
 });
 
-HOTELS.forEach(([name]) => {
-  if(!HOTEL_ADDRESSES[name]) errors.push(`Hotel sem endereço: ${name}`);
-  if(!Number.isFinite(HOTEL_PRICES_EUR[name])) errors.push(`Hotel sem preço: ${name}`);
+Object.entries(HOTEL_CATALOG).forEach(([id, hotel]) => {
+  if(!hotel.name || !hotel.city) errors.push(`Hotel incompleto: ${id}`);
+  if(!hotel.address) errors.push(`Hotel sem endereço: ${id}`);
+  if(!hotel.bookingUrl) errors.push(`Hotel sem URL: ${id}`);
+  if(!Number.isFinite(hotel.priceEUR)) errors.push(`Hotel sem preço: ${id}`);
 });
 
 if(errors.length){

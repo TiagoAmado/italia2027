@@ -230,15 +230,14 @@ function categorySumsEUR(){
 
 function hotelNightsSummary(){
   const nights = {};
-  const cities = {};
-  DAYS.forEach(day=>{
-    const m = /^Dormindo no (.+?) \((.+?)\)/.exec(day.end || '');
-    if(!m) return;
-    nights[m[1]] = (nights[m[1]] || 0) + 1;
-    cities[m[1]] = m[2];
+  const firstDayIndex = {};
+  DAYS.forEach((day, dayIndex)=>{
+    if(!day.overnightHotelId) return;
+    nights[day.overnightHotelId] = (nights[day.overnightHotelId] || 0) + 1;
+    if(firstDayIndex[day.overnightHotelId] == null) firstDayIndex[day.overnightHotelId] = dayIndex;
   });
-  return HOTELS
-    .map(([name])=>({name, city: cities[name] || null, nights: nights[name] || 0, pricePerNight: HOTEL_PRICES_EUR[name] ?? null}))
+  return Object.entries(HOTEL_CATALOG)
+    .map(([id, hotel])=>({id, name:hotel.name, city:hotel.city, nights:nights[id] || 0, pricePerNight:hotel.priceEUR ?? null, firstDayIndex:firstDayIndex[id]}))
     .filter(h=>h.nights>0);
 }
 
@@ -252,9 +251,9 @@ function categoryItems(catName){
 // — alimenta a seção "Pendências de reserva" do resumo geral, que só aparece se
 // houver algum. reserveInfo (quando presente) documenta quando/como reservar.
 function pendingReservations(){
-  return DAYS.flatMap(day => day.items
+  return DAYS.flatMap((day, dayIndex) => day.items
     .filter(it=>it.status==='a-reservar' || it.status==='pendente')
-    .map(it=>({d:day.d, cityLabel:day.cityLabel, a:it.a, cat:it.cat, ci:it.ci, status:it.status, reserveInfo:it.reserveInfo})));
+    .map(it=>({d:day.d, dayIndex, cityLabel:day.cityLabel, a:it.a, cat:it.cat, ci:it.ci, hotelId:it.hotelId, status:it.status, reserveInfo:it.reserveInfo})));
 }
 
 // Hospedagem (ci:true) agrupa por hotel em vez de listar cada check-in/checkout
@@ -344,8 +343,8 @@ function renderSummary(){
   const pendingByGroup = {hospedagem:[], atracao:[], comida:[], transporte:[]};
   pending.forEach(it=> pendingByGroup[reservationGroupKey(it)].push(it));
 
-  const pendingHotelNames = new Set(pendingByGroup.hospedagem.map(it=>it.a.replace(/^(Check-in|Checkout) — /,'')));
-  const pendingHotelStays = hotelStays.filter(h=>pendingHotelNames.has(h.name));
+  const pendingHotelIds = new Set(pendingByGroup.hospedagem.map(it=>it.hotelId).filter(Boolean));
+  const pendingHotelStays = hotelStays.filter(h=>pendingHotelIds.has(h.id));
   const hospedagemHTML = pendingHotelStays.map(h=>{
     const st = STATUS_META['a-reservar'];
     return `<li class="reservation-item">
@@ -604,6 +603,11 @@ function getMapsLinksFor(item, day){
   const a = item.a || '';
 
   // Hotel: endereço exato
+  if(item.hotelId && HOTEL_CATALOG[item.hotelId]){
+    const hotel = HOTEL_CATALOG[item.hotelId];
+    links.push({label:hotel.name+' no Maps', url:mapsUrl(hotel.address), icon:'pin'});
+    return links;
+  }
   if(a.includes('Check-in') || a.includes('Checkout')){
     for(const [name, addr] of Object.entries(HOTEL_ADDRESSES)){
       if(a.includes(name)) links.push({label:name+' no Maps', url: mapsUrl(addr), icon:'pin'});
@@ -639,7 +643,9 @@ function getLinksFor(item){
   const a = item.a || '';
   const tr = item.tr || '';
 
-  if(a.includes('Check-in') || a.includes('Checkout')){
+  if(item.hotelId && HOTEL_CATALOG[item.hotelId]){
+    links.push({label:'Ver no Booking.com', url:HOTEL_CATALOG[item.hotelId].bookingUrl});
+  }else if(a.includes('Check-in') || a.includes('Checkout')){
     HOTELS.forEach(([name,url])=>{ if(a.includes(name)) links.push({label:'Ver no Booking.com', url}); });
   }
 
