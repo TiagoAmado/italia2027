@@ -10,7 +10,8 @@ const ICON_SVG = {
   link: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M9 15l6-6"/><path d="M11 6l1-1a4 4 0 1 1 6 6l-1 1"/><path d="M13 18l-1 1a4 4 0 1 1-6-6l1-1"/></svg>',
   check: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M4 12.5l5 5L20 6"/></svg>',
   hourglass: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M6 3h12M6 21h12"/><path d="M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/></svg>',
-  ticket: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z"/><path d="M10 6v12" stroke-dasharray="2 2"/></svg>'
+  ticket: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z"/><path d="M10 6v12" stroke-dasharray="2 2"/></svg>',
+  route: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h3a3 3 0 0 0 3-3V9a3 3 0 0 1 3-3"/></svg>'
 };
 function icon(name){
   return (ICON_SVG[name] || '').replace('<svg ', '<svg aria-hidden="true" focusable="false" ');
@@ -817,7 +818,7 @@ function renderDay(){
   view.innerHTML = `
     <div class="pass">
       <div class="pass-head">
-        <div class="eyebrow">${day.d} · ${day.wk}${isToday ? '<span class="today-badge">HOJE</span>' : ''}</div>
+        <div class="eyebrow"><span class="day-sequence">Dia ${active+1} de ${DAYS.length}</span> · ${day.d} · ${day.wk}${isToday ? '<span class="today-badge">HOJE</span>' : ''}</div>
         <h2>${day.title}</h2>
         <div class="hotel-line">
           <span class="tag">${day.hotel ? 'Base':'Status'}</span>
@@ -858,8 +859,9 @@ function renderDay(){
   const itemsList = document.getElementById('itemsList');
   day.items.forEach((it, itemIndex)=>{
     const links = [...getLinksFor(it), ...getMapsLinksFor(it, day)];
+    const isTransit = it.cat==='transporte' || (it.a || '').includes(' → ');
     const row = document.createElement('li');
-    row.className = 'item' + (it.ci ? ' checkinout' : '');
+    row.className = 'item' + (it.ci ? ' checkinout' : '') + (isTransit ? ' transit' : '');
     const mainEl = document.createElement('div');
     mainEl.className = 'item-main';
 
@@ -885,7 +887,7 @@ function renderDay(){
       const s = document.createElement('span'); s.className='m'; s.innerHTML = icon('clock')+' '+it.dur; metaEl.appendChild(s);
     }
     if(it.tr && it.tr!=='—'){
-      const s = document.createElement('span'); s.className='m'; s.textContent = it.tr; metaEl.appendChild(s);
+      const s = document.createElement('span'); s.className='m transport'; s.innerHTML = icon('route')+' '+it.tr; metaEl.appendChild(s);
     }
     if(it.p && it.p!=='—'){
       const s = document.createElement('span'); s.className='price'; s.textContent = it.p; metaEl.appendChild(s);

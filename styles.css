@@ -269,6 +269,7 @@ main.day.view-fade{opacity:0; transform:translateY(6px);}
   font-weight:600;
   margin-bottom:6px;
 }
+.pass-head .day-sequence{color:var(--ink);}
 .pass-head h2{
   font-family:'Fraunces', serif;
   font-weight:600;
@@ -334,6 +335,11 @@ main.day.view-fade{opacity:0; transform:translateY(6px);}
 .item{
   border-bottom:1px solid var(--line);
 }
+.item.transit{
+  background:color-mix(in srgb, var(--accent-city-soft, var(--accent-soft)) 42%, var(--paper-raised));
+  box-shadow:inset 3px 0 var(--accent-city, var(--accent));
+}
+.item.transit .item-main:hover{background:color-mix(in srgb, var(--accent-city-soft, var(--accent-soft)) 65%, var(--paper));}
 .item-main{
   display:grid;
   grid-template-columns:64px 1fr;
@@ -420,6 +426,7 @@ main.day.view-fade{opacity:0; transform:translateY(6px);}
 .item .body .meta .m{
   display:inline-flex; align-items:center; gap:4px;
 }
+.item .body .meta .m.transport{color:var(--ink); font-weight:500;}
 .item .body .meta .m.status-confirmado{color:var(--status-confirmado); font-weight:600;}
 .item .body .meta .m.status-a-reservar{color:var(--status-a-reservar); font-weight:600;}
 .item .body .meta .m.status-pendente{color:var(--status-pendente); font-weight:600;}
