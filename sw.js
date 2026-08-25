@@ -1,4 +1,4 @@
-const CACHE_NAME = 'roteiro-italia-v32';
+const CACHE_NAME = 'roteiro-italia-v38';
 const APP_SHELL = [
   './',
   './index.html',
@@ -7,7 +7,8 @@ const APP_SHELL = [
   './calendar.js',
   './trip-time.js',
   './app.js',
-  './manifest.json'
+  './manifest.json',
+  './icons/icon.svg'
 ];
 
 self.addEventListener('install', (event)=>{
@@ -32,13 +33,18 @@ self.addEventListener('fetch', (event)=>{
   const url = new URL(req.url);
 
   if(url.origin === self.location.origin){
-    // App shell: cache-first, com fallback pra rede e pro index em caso de falha total
+    // App shell: cache-first. Só navegações caem no HTML; um asset ausente nunca recebe index.html.
     event.respondWith(
       caches.match(req).then(cached => cached || fetch(req).then(res => {
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
+        if(res.ok){
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
+        }
         return res;
-      })).catch(() => caches.match('./index.html'))
+      })).catch(err => {
+        if(req.mode === 'navigate') return caches.match('./index.html');
+        throw err;
+      })
     );
     return;
   }

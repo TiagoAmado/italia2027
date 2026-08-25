@@ -931,6 +931,8 @@ function renderDay(){
         links.forEach(l=>{
           const a = document.createElement('a');
           a.href = l.url;
+          a.className = 'external-action';
+          a.dataset.requiresNetwork = 'true';
           a.target = '_blank';
           a.rel = 'noopener noreferrer';
           a.innerHTML = (l.icon ? icon(l.icon)+' ' : '') + '↗ ' + l.label;
@@ -963,9 +965,52 @@ function renderDay(){
   });
 }
 
+let appUpdateReady = false;
+function setAppStatus(message, kind, showReload = false){
+  const status = document.getElementById('appStatus');
+  const text = document.getElementById('appStatusText');
+  const reload = document.getElementById('reloadAppBtn');
+  if(!status || !text || !reload) return;
+  status.hidden = !message;
+  status.dataset.kind = kind || '';
+  text.textContent = message || '';
+  reload.hidden = !showReload;
+}
+
+function updateConnectivityStatus(){
+  const offline = !navigator.onLine;
+  document.documentElement.toggleAttribute('data-offline', offline);
+  if(appUpdateReady) return;
+  if(offline) setAppStatus('Você está offline. O roteiro salvo continua disponível; links externos precisam de internet.', 'offline');
+  else setAppStatus('', '');
+}
+
+document.getElementById('reloadAppBtn').addEventListener('click', ()=>location.reload());
+window.addEventListener('online', updateConnectivityStatus);
+window.addEventListener('offline', updateConnectivityStatus);
+updateConnectivityStatus();
+
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('sw.js').catch(()=>{ /* offline/PWA é um extra — segue sem quebrar o app */ });
+    let isInitialClaim = !navigator.serviceWorker.controller;
+    const showAppUpdate = ()=>{
+      appUpdateReady = true;
+      setAppStatus('Uma versão mais recente do roteiro está pronta.', 'update', true);
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+      if(isInitialClaim){ isInitialClaim = false; return; }
+      showAppUpdate();
+    });
+    navigator.serviceWorker.register('sw.js').then(registration=>{
+      registration.addEventListener('updatefound', ()=>{
+        const worker = registration.installing;
+        if(!worker) return;
+        worker.addEventListener('statechange', ()=>{
+          if(worker.state==='installed' && navigator.serviceWorker.controller) showAppUpdate();
+        });
+      });
+      registration.update().catch(()=>{ /* a checagem automática tentará novamente depois */ });
+    }).catch(()=>{ /* offline/PWA é um extra — segue sem quebrar o app */ });
   });
 }
 
