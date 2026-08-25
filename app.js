@@ -33,18 +33,13 @@ const STATUS_META = {
   pendente: {icon:'hourglass', label:'Pendente'}
 };
 
-function dateForDay(day){
-  const [dd, mm] = day.d.split('/').map(Number);
-  return new Date(TRIP_YEAR, mm-1, dd);
+function findTodayIndex(){
+  return findTripDayIndex(DAYS, new Date());
 }
 
-function findTodayIndex(){
-  const now = new Date();
-  for(let i=0;i<DAYS.length;i++){
-    const dd = dateForDay(DAYS[i]);
-    if(dd.getFullYear()===now.getFullYear() && dd.getMonth()===now.getMonth() && dd.getDate()===now.getDate()) return i;
-  }
-  return -1;
+function dayLiveStatus(day){
+  if(findTodayIndex() !== active) return null;
+  return getDayLiveStatus(day, new Date());
 }
 
 let active = 0;
@@ -72,11 +67,10 @@ function loadState(){
       const st = JSON.parse(raw);
       if(typeof st.active === 'number' && st.active>=0 && st.active<DAYS.length) active = st.active;
       if(st.mode === 'summary' || st.mode === 'byday' || st.mode === 'checklist') mode = st.mode;
-      return;
     }
   }catch(err){ /* localStorage indisponível — segue com o default */ }
   const todayIdx = findTodayIndex();
-  if(todayIdx>=0) active = todayIdx;
+  if(todayIdx>=0){ active = todayIdx; mode = 'byday'; }
 }
 
 function routeHash(){
@@ -116,6 +110,17 @@ function updateModeControls(){
     button.setAttribute('aria-pressed', String(selected));
   });
   document.documentElement.setAttribute('data-mode', mode);
+  updateTodayButton();
+}
+
+function updateTodayButton(){
+  const button = document.getElementById('todayBtn');
+  const todayIndex = findTodayIndex();
+  button.hidden = todayIndex < 0;
+  if(todayIndex>=0){
+    button.setAttribute('aria-label', 'Ir para hoje, '+DAYS[todayIndex].d+' — '+DAYS[todayIndex].title);
+    button.classList.toggle('is-current', mode==='byday' && active===todayIndex);
+  }
 }
 
 function goToDay(i, options = {}){
@@ -143,6 +148,10 @@ function setMode(m, options = {}){
 document.getElementById('btnByDay').onclick = ()=>setMode('byday', {focus:true});
 document.getElementById('btnSummary').onclick = ()=>setMode('summary', {focus:true});
 document.getElementById('btnChecklist').onclick = ()=>setMode('checklist', {focus:true});
+document.getElementById('todayBtn').onclick = ()=>{
+  const todayIndex = findTodayIndex();
+  if(todayIndex>=0) goToDay(todayIndex, {historyMode:'push', focus:true});
+};
 
 window.addEventListener('popstate', ()=>{
   if(!loadHashState()) return;
@@ -743,6 +752,8 @@ function renderDay(){
   setHeroImage(day.city);
 
   const isToday = findTodayIndex() === active;
+  const pendingCount = day.items.filter(item=>item.status==='a-reservar' || item.status==='pendente').length;
+  const live = dayLiveStatus(day);
 
   view.innerHTML = `
     <div class="pass">
@@ -753,6 +764,16 @@ function renderDay(){
           <span class="tag">${day.hotel ? 'Base':'Status'}</span>
           <span>${day.hotel ? day.hotel : day.hotelNote}</span>
         </div>
+        <div class="day-overview" aria-label="Resumo do dia">
+          <span>${day.items.length} atividade${day.items.length===1?'':'s'}</span>
+          <span>${pendingCount} reserva${pendingCount===1?'':'s'} pendente${pendingCount===1?'':'s'}</span>
+          ${day.budget>0 ? `<span>${fmtEUR(day.budget)} estimados</span>` : ''}
+        </div>
+        ${live ? `<div class="day-live" aria-label="Situação atual do roteiro">
+          <div class="dl-label">${live.label}</div>
+          <div class="dl-primary">${live.time ? live.time+' · ' : ''}${live.primary}</div>
+          ${live.next ? `<div class="dl-next">Depois: ${live.next.item.t} · ${live.next.item.a}</div>` : ''}
+        </div>` : ''}
       </div>
       <div class="perf"></div>
       <ul class="items" id="itemsList"></ul>
