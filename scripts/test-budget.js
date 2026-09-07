@@ -28,7 +28,8 @@ expect(categoryItems('transporte').length>0, 'detalhamento de transporte vazio')
 const stays = hotelNightsSummary();
 expect(stays.length===5, `esperadas 5 estadias, recebidas ${stays.length}`);
 expect(stays.reduce((sum,stay)=>sum+stay.nights,0)===13, 'total de noites diferente de 13');
-expect(closeTo(stays.reduce((sum,stay)=>sum+stay.nights*stay.pricePerNight,0), 2264.4), 'total de hotéis diferente de € 2.264,40');
+expect(closeTo(stays.reduce((sum,stay)=>sum+stay.totalBRL,0), 15565), 'total de hotéis diferente de R$ 15.565,00');
+expect(stays.every(stay=>stay.room && stay.checkIn && stay.checkOut), 'dados da reserva de hotel incompletos');
 
 if(failures.length){
   console.error(failures.map(failure=>`- ${failure}`).join('\n'));

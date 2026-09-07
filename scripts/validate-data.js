@@ -80,7 +80,9 @@ Object.entries(HOTEL_CATALOG).forEach(([id, hotel]) => {
   if(!hotel.name || !hotel.city) errors.push(`Hotel incompleto: ${id}`);
   if(!hotel.address) errors.push(`Hotel sem endereço: ${id}`);
   if(!hotel.bookingUrl) errors.push(`Hotel sem URL: ${id}`);
-  if(!Number.isFinite(hotel.priceEUR)) errors.push(`Hotel sem preço: ${id}`);
+  if(!Number.isFinite(hotel.totalBRL)) errors.push(`Hotel sem preço: ${id}`);
+  if(!hotel.checkIn || !hotel.checkOut) errors.push(`Hotel sem datas: ${id}`);
+  if(!hotel.room) errors.push(`Hotel sem tipo de quarto: ${id}`);
 });
 
 if(errors.length){

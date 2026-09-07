@@ -42,7 +42,17 @@ function hotelNightsSummary(){
     if(firstDayIndex[day.overnightHotelId] == null) firstDayIndex[day.overnightHotelId] = dayIndex;
   });
   return Object.entries(HOTEL_CATALOG)
-    .map(([id, hotel])=>({id, name:hotel.name, city:hotel.city, nights:nights[id] || 0, pricePerNight:hotel.priceEUR ?? null, firstDayIndex:firstDayIndex[id]}))
+    .map(([id, hotel])=>({
+      id,
+      name:hotel.name,
+      city:hotel.city,
+      nights:nights[id] || 0,
+      totalBRL:hotel.totalBRL ?? null,
+      room:hotel.room || null,
+      checkIn:hotel.checkIn || null,
+      checkOut:hotel.checkOut || null,
+      firstDayIndex:firstDayIndex[id]
+    }))
     .filter(h=>h.nights>0);
 }
 

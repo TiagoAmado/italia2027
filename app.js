@@ -257,18 +257,17 @@ function renderSummary(){
 
   const hotelStays = hotelNightsSummary();
   const hotelRowsHTML = hotelStays.map(h=>{
-    const sub = h.pricePerNight!=null ? h.nights*h.pricePerNight : null;
     return `<li class="hotel-row">
       <div class="hr-mid">
         <div class="hr-name">${h.name}${h.city ? ` <span class="hr-city">— ${h.city}</span>` : ''}</div>
-        <div class="hr-nights">${h.nights} noite${h.nights===1?'':'s'} · ${h.pricePerNight!=null ? fmtEUR(h.pricePerNight)+'/noite' : 'preço a confirmar'}</div>
+        <div class="hr-nights">${h.checkIn && h.checkOut ? `${h.checkIn}–${h.checkOut} · ` : ''}${h.nights} noite${h.nights===1?'':'s'}${h.room ? ` · ${h.room}` : ''}</div>
       </div>
-      <div class="hr-sub">${sub!=null ? fmtEUR(sub) : '—'}</div>
+      <div class="hr-sub">${h.totalBRL!=null ? fmtBRL(h.totalBRL) : '—'}</div>
     </li>`;
   }).join('');
-  const hotelTotalEUR = hotelStays.reduce((s,h)=> s + (h.pricePerNight!=null ? h.nights*h.pricePerNight : 0), 0);
-  const hotelHasUnpriced = hotelStays.some(h=>h.pricePerNight==null);
-  const hotelDetailHTML = hotelStays.map(h=>bdRow(h.city || '', `${h.name} — ${h.nights} noite${h.nights===1?'':'s'}${h.pricePerNight!=null ? ' — '+fmtEUR(h.nights*h.pricePerNight) : ' — preço a confirmar'}`)).join('');
+  const hotelTotalBRL = hotelStays.reduce((s,h)=>s+(h.totalBRL || 0), 0);
+  const hotelHasUnpriced = hotelStays.some(h=>h.totalBRL==null);
+  const hotelDetailHTML = hotelStays.map(h=>bdRow(h.city || '', `${h.name} — ${h.nights} noite${h.nights===1?'':'s'}${h.room ? ' — '+h.room : ''}${h.totalBRL!=null ? ' — '+fmtBRL(h.totalBRL) : ' — preço a confirmar'}`)).join('');
 
   const transporteItems = categoryItems('transporte');
   const comidaItems = categoryItems('comida');
@@ -282,7 +281,7 @@ function renderSummary(){
   const seguroBRL = INSURANCE_MISC_ITEMS_BRL.reduce((s,i)=>s+i.brl,0);
 
   const cat = categorySumsEUR();
-  const hoteisBRL = hotelTotalEUR * EXCHANGE_RATE;
+  const hoteisBRL = hotelTotalBRL;
   const transporteBRL = cat.transporte * EXCHANGE_RATE;
   const comidaBRL = cat.comida * EXCHANGE_RATE;
   const atracaoBRL = cat.atracao * EXCHANGE_RATE;
@@ -310,7 +309,7 @@ function renderSummary(){
         <span class="m status-a-reservar">${icon(st.icon)} ${st.label}</span>
       </div>
       <div class="ri-name">${h.name}</div>
-      <div class="ri-info">Reservar diretamente com o hotel ou por um site como Booking — ${h.pricePerNight!=null ? fmtEUR(h.pricePerNight)+'/noite' : 'preço a confirmar'}.</div>
+      <div class="ri-info">Reservar diretamente com o hotel ou por um site como Booking — ${h.totalBRL!=null ? fmtBRL(h.totalBRL)+' pela estadia' : 'preço a confirmar'}.</div>
       <button type="button" class="ri-open" data-day-index="${h.firstDayIndex}">Abrir primeiro dia da estadia</button>
     </li>`;
   }).join('');
@@ -343,7 +342,7 @@ function renderSummary(){
         <div class="items" style="padding:10px 16px 6px;">
           <ul class="budget-rows">
             ${budgetRowHTML('Passagens Brasil–Itália (pago)', fmtBRL(FIXED_COSTS_BRL.passagens), fmtEUR(passagensEUR), passagensDetailHTML)}
-            ${budgetRowHTML('Hotéis', `${hotelHasUnpriced?'~':''}${fmtBRL(hoteisBRL)}`, `${hotelHasUnpriced?'~':''}${fmtEUR(hotelTotalEUR)}`, hotelDetailHTML)}
+            ${budgetRowHTML('Hotéis (confirmados)', `${hotelHasUnpriced?'~':''}${fmtBRL(hoteisBRL)}`, `≈ ${fmtEUR(hoteisBRL/EXCHANGE_RATE)}`, hotelDetailHTML)}
             ${budgetRowHTML('Trens e transfers', fmtBRL(transporteBRL), fmtEUR(cat.transporte), itemDetailHTML(transporteItems))}
             ${budgetRowHTML('Alimentação', fmtBRL(comidaBRL), fmtEUR(cat.comida), itemDetailHTML(comidaItems))}
             ${budgetRowHTML('Atrações (inclui Ferrari/test drive)', fmtBRL(atracaoBRL), fmtEUR(cat.atracao), itemDetailHTML(atracaoItems))}
@@ -362,12 +361,12 @@ function renderSummary(){
           <ul class="hotel-rows">
             ${hotelRowsHTML}
             <li class="hotel-row hotel-row-total">
-              <div class="hr-name">Total (hotéis c/ preço encontrado)</div>
-              <div class="hr-sub">${fmtEUR(hotelTotalEUR)}</div>
+              <div class="hr-name">Total confirmado</div>
+              <div class="hr-sub">${fmtBRL(hotelTotalBRL)}</div>
             </li>
           </ul>
         </div>
-        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Preço/noite consultado em ${fmtReferenceDate(HOTEL_PRICES_CHECKED_AT)} para as datas reais de cada estadia — mesmo total usado na linha "Hotéis" do orçamento geral acima</div>
+        <div class="foot-note" style="padding:0 22px 16px; color:var(--ink-soft); font-size:12px;">Valores reais das reservas em reais — o equivalente em euros no orçamento usa apenas o câmbio de referência</div>
       </div>
 
       ${pending.length > 0 ? `
